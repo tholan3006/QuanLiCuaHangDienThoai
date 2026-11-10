@@ -112,3 +112,39 @@ QuanLiCuaHangDienThoai/
 - **In ấn & Chart:** react-to-print (In hóa đơn) + Chart.js (Biểu đồ)
 - **Vẽ sơ đồ báo cáo:** Draw.io + dbdiagram.io
 - **Quản lý code:** GitHub
+
+
+---
+
+## Hướng dẫn cài đặt và chạy dự án (Thành viên 2: CSDL & Quản lý Danh mục, Sản phẩm)
+
+### 1. Khởi tạo Cơ sở dữ liệu PostgreSQL
+- **Cách 1 (Chạy trực tiếp trên DBeaver / pgAdmin):**
+  Mở file `database_script.sql` và thực thi toàn bộ script để tạo 13 bảng dữ liệu, ràng buộc `PK`, `FK`, `UNIQUE`, `CHECK` và dữ liệu mẫu.
+- **Cách 2 (Chạy qua Prisma ORM tại thư mục `backend/`):**
+  ```bash
+  cd backend
+  cp .env.example .env
+  npm install
+  npm run prisma:generate
+  npm run prisma:migrate
+  npm run prisma:seed
+  ```
+
+### 2. Chạy Backend (NestJS + Swagger API)
+```bash
+cd backend
+npm run start:dev
+```
+- REST API: `http://localhost:4000/api`
+- Swagger Docs: `http://localhost:4000/api/docs`
+
+### 3. Chạy Frontend (Next.js)
+```bash
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev
+```
+- Giao diện Quản lý Sản phẩm (Nhân viên - TV2): `http://localhost:3000/staff/products`
+- Giao diện Danh sách Sản phẩm (Khách hàng): `http://localhost:3000/products`
