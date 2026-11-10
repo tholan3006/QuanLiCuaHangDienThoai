@@ -1,0 +1,150 @@
+// ============================================================================
+// DBML SCRIPT CHO DBDIAGRAM.IO (https://dbdiagram.io/d)
+// HỆ THỐNG WEBSITE QUẢN LÝ VÀ BÁN IPHONE
+// Thiết kế theo đúng mục "2.1. Sơ đồ quan hệ giữa các bảng" (13 Bảng)
+// Phụ trách: Thành viên 2 - Mục II.1: Thiết kế và cài đặt CSDL
+// ============================================================================
+
+Project Website_QuanLy_Va_Ban_iPhone {
+  database_type: 'PostgreSQL'
+  Note: '2.1. Sơ đồ quan hệ giữa các bảng (13 Bảng dữ liệu)'
+}
+
+Table VAI_TRO {
+  mavaitro int [pk, increment]
+  tenvaitro varchar(100) [unique, not null]
+  mota text
+}
+
+Table TAI_KHOAN {
+  mataikhoan int [pk, increment]
+  tendangnhap varchar(100) [unique, not null]
+  matkhau varchar(255) [not null]
+  email varchar(255) [unique, not null]
+  trangthai varchar(30) [not null, default: 'HOAT_DONG']
+  mavaitro int [not null]
+}
+
+Table NHAN_VIEN {
+  manhanvien int [pk, increment]
+  hoten varchar(150) [not null]
+  sdt varchar(20) [unique]
+  diachi text
+  chucvu varchar(100)
+  ngayvaolam timestamp [default: `CURRENT_TIMESTAMP`]
+  mataikhoan int [unique, not null]
+}
+
+Table KHACH_HANG {
+  makhachhang int [pk, increment]
+  hoten varchar(150) [not null]
+  sdt varchar(20)
+  diachi text
+  mataikhoan int [unique, not null]
+}
+
+Table DANH_MUC {
+  madanhmuc int [pk, increment]
+  tendanhmuc varchar(150) [unique, not null]
+  mota text
+}
+
+Table SAN_PHAM {
+  masanpham int [pk, increment]
+  tensanpham varchar(200) [not null]
+  dungluong varchar(30) [not null]
+  mausac varchar(50) [not null]
+  giaban decimal(15,2) [not null]
+  mota text
+  hinhanh varchar(500)
+  trangthai varchar(30) [not null, default: 'DANG_BAN']
+  madanhmuc int [not null]
+
+  indexes {
+    (tensanpham, dungluong, mausac) [unique]
+  }
+}
+
+Table TON_KHO {
+  matonkho int [pk, increment]
+  masanpham int [not null]
+  soluong int [not null, default: 0]
+  ngaycapnhat timestamp [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table GIO_HANG {
+  magiohang int [pk, increment]
+  makhachhang int [not null]
+}
+
+Table CHI_TIET_GIO_HANG {
+  machitietgio int [pk, increment]
+  magiohang int [not null]
+  masanpham int [not null]
+  soluong int [not null]
+  dongia decimal(15,2) [not null]
+
+  indexes {
+    (magiohang, masanpham) [unique]
+  }
+}
+
+Table DON_HANG {
+  madonhang int [pk, increment]
+  makhachhang int [not null]
+  manhanvien int
+  ngaydat timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  ngayxacnhan timestamp
+  tongtien decimal(15,2) [not null]
+  phuongthucthanhtoan varchar(50) [not null, default: 'COD']
+  trangthai varchar(30) [not null, default: 'CHO_XAC_NHAN']
+}
+
+Table CHI_TIET_DON_HANG {
+  machitiet int [pk, increment]
+  madonhang int [not null]
+  masanpham int [not null]
+  soluong int [not null]
+  dongia decimal(15,2) [not null]
+  thanhtien decimal(15,2) [not null]
+
+  indexes {
+    (madonhang, masanpham) [unique]
+  }
+}
+
+Table HOA_DON {
+  mahoadon int [pk, increment]
+  madonhang int [unique, not null]
+  ngaylap timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  tongtien decimal(15,2) [not null]
+  hinhthuctt varchar(50) [not null]
+}
+
+Table BAO_CAO_DOANH_THU {
+  mabaocao int [pk, increment]
+  ngaybatdau timestamp [not null]
+  ngayketthuc timestamp [not null]
+  tongdoanhthu decimal(15,2) [not null, default: 0]
+  tongsodonhang int [not null, default: 0]
+  soluongsanphamdaban int [not null, default: 0]
+}
+
+// QUAN HỆ KHÓA NGOẠI (RELATIONSHIPS)
+Ref: TAI_KHOAN.mavaitro > VAI_TRO.mavaitro [delete: restrict]
+Ref: NHAN_VIEN.mataikhoan > TAI_KHOAN.mataikhoan [delete: cascade]
+Ref: KHACH_HANG.mataikhoan > TAI_KHOAN.mataikhoan [delete: cascade]
+
+Ref: SAN_PHAM.madanhmuc > DANH_MUC.madanhmuc [delete: restrict]
+Ref: TON_KHO.masanpham > SAN_PHAM.masanpham [delete: restrict]
+
+Ref: GIO_HANG.makhachhang > KHACH_HANG.makhachhang [delete: cascade]
+Ref: CHI_TIET_GIO_HANG.magiohang > GIO_HANG.magiohang [delete: cascade]
+Ref: CHI_TIET_GIO_HANG.masanpham > SAN_PHAM.masanpham [delete: restrict]
+
+Ref: DON_HANG.makhachhang > KHACH_HANG.makhachhang [delete: restrict]
+Ref: DON_HANG.manhanvien > NHAN_VIEN.manhanvien [delete: set null]
+Ref: CHI_TIET_DON_HANG.madonhang > DON_HANG.madonhang [delete: cascade]
+Ref: CHI_TIET_DON_HANG.masanpham > SAN_PHAM.masanpham [delete: restrict]
+
+Ref: HOA_DON.madonhang > DON_HANG.madonhang [delete: restrict]

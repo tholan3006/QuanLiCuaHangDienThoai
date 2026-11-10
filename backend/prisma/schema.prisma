@@ -1,0 +1,247 @@
+// ============================================================================
+// PRISMA SCHEMA - WEBSITE QUẢN LÝ VÀ BÁN IPHONE
+// Thiết kế theo đúng mục "2.1. Sơ đồ quan hệ giữa các bảng" (13 bảng dữ liệu)
+// Phụ trách: Thành viên 2 (Quản trị CSDL & Quản lý Danh mục, Sản phẩm)
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// 1. BẢNG VAI_TRO
+// ----------------------------------------------------------------------------
+model VAI_TRO {
+  mavaitro  Int     @id @default(autoincrement())
+  tenvaitro String  @unique @db.VarChar(100)
+  mota      String? @db.Text
+
+  TAI_KHOAN TAI_KHOAN[]
+
+  @@map("VAI_TRO")
+}
+
+// ----------------------------------------------------------------------------
+// 2. BẢNG TAI_KHOAN
+// ----------------------------------------------------------------------------
+model TAI_KHOAN {
+  mataikhoan  Int    @id @default(autoincrement())
+  tendangnhap String @unique @db.VarChar(100)
+  matkhau     String @db.VarChar(255)
+  email       String @unique @db.VarChar(255)
+  trangthai   String @default("HOAT_DONG") @db.VarChar(30) // HOAT_DONG | KHOA
+  mavaitro    Int
+
+  VAI_TRO    VAI_TRO      @relation(fields: [mavaitro], references: [mavaitro], onDelete: Restrict, onUpdate: Cascade)
+  NHAN_VIEN  NHAN_VIEN[]
+  KHACH_HANG KHACH_HANG[]
+
+  @@index([mavaitro])
+  @@map("TAI_KHOAN")
+}
+
+// ----------------------------------------------------------------------------
+// 3. BẢNG NHAN_VIEN
+// ----------------------------------------------------------------------------
+model NHAN_VIEN {
+  manhanvien Int       @id @default(autoincrement())
+  hoten      String    @db.VarChar(150)
+  sdt        String?   @unique @db.VarChar(20)
+  diachi     String?   @db.Text
+  chucvu     String?   @db.VarChar(100)
+  ngayvaolam DateTime? @default(now())
+  mataikhoan Int       @unique
+
+  TAI_KHOAN TAI_KHOAN  @relation(fields: [mataikhoan], references: [mataikhoan], onDelete: Cascade, onUpdate: Cascade)
+  DON_HANG  DON_HANG[]
+
+  @@map("NHAN_VIEN")
+}
+
+// ----------------------------------------------------------------------------
+// 4. BẢNG KHACH_HANG
+// ----------------------------------------------------------------------------
+model KHACH_HANG {
+  makhachhang Int     @id @default(autoincrement())
+  hoten       String  @db.VarChar(150)
+  sdt         String? @db.VarChar(20)
+  diachi      String? @db.Text
+  mataikhoan  Int     @unique
+
+  TAI_KHOAN TAI_KHOAN  @relation(fields: [mataikhoan], references: [mataikhoan], onDelete: Cascade, onUpdate: Cascade)
+  DON_HANG  DON_HANG[]
+  GIO_HANG  GIO_HANG[]
+
+  @@map("KHACH_HANG")
+}
+
+// ----------------------------------------------------------------------------
+// 5. BẢNG DANH_MUC (Phụ trách chính TV2)
+// ----------------------------------------------------------------------------
+model DANH_MUC {
+  madanhmuc  Int     @id @default(autoincrement())
+  tendanhmuc String  @unique @db.VarChar(150)
+  mota       String? @db.Text
+
+  SAN_PHAM SAN_PHAM[]
+
+  @@map("DANH_MUC")
+}
+
+// ----------------------------------------------------------------------------
+// 6. BẢNG SAN_PHAM (Phụ trách chính TV2)
+// Hỗ trợ Soft Delete qua cột trangthai ('DANG_BAN' | 'NGUNG_KINH_DOANH' | 'HET_HANG')
+// ----------------------------------------------------------------------------
+model SAN_PHAM {
+  masanpham  Int     @id @default(autoincrement())
+  tensanpham String  @db.VarChar(200)
+  dungluong  String  @db.VarChar(30)
+  mausac     String  @db.VarChar(50)
+  giaban     Decimal @db.Decimal(15, 2)
+  mota       String? @db.Text
+  hinhanh    String? @db.VarChar(500)
+  trangthai  String  @default("DANG_BAN") @db.VarChar(30) // DANG_BAN | NGUNG_KINH_DOANH | HET_HANG
+  madanhmuc  Int
+
+  DANH_MUC          DANH_MUC            @relation(fields: [madanhmuc], references: [madanhmuc], onDelete: Restrict, onUpdate: Cascade)
+  TON_KHO           TON_KHO[]
+  CHI_TIET_DON_HANG CHI_TIET_DON_HANG[]
+  CHI_TIET_GIO_HANG CHI_TIET_GIO_HANG[]
+
+  @@unique([tensanpham, dungluong, mausac], name: "uq_san_pham_ten_dungluong_mausac")
+  @@index([madanhmuc])
+  @@index([tensanpham])
+  @@index([giaban])
+  @@index([trangthai])
+  @@map("SAN_PHAM")
+}
+
+// ----------------------------------------------------------------------------
+// 7. BẢNG TON_KHO (Phụ trách chính TV2)
+// ----------------------------------------------------------------------------
+model TON_KHO {
+  matonkho    Int      @id @default(autoincrement())
+  masanpham   Int
+  soluong     Int      @default(0)
+  ngaycapnhat DateTime @default(now())
+
+  SAN_PHAM SAN_PHAM @relation(fields: [masanpham], references: [masanpham], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([masanpham])
+  @@map("TON_KHO")
+}
+
+// ----------------------------------------------------------------------------
+// 8. BẢNG GIO_HANG
+// ----------------------------------------------------------------------------
+model GIO_HANG {
+  magiohang   Int @id @default(autoincrement())
+  makhachhang Int
+
+  KHACH_HANG        KHACH_HANG          @relation(fields: [makhachhang], references: [makhachhang], onDelete: Cascade, onUpdate: Cascade)
+  CHI_TIET_GIO_HANG CHI_TIET_GIO_HANG[]
+
+  @@index([makhachhang])
+  @@map("GIO_HANG")
+}
+
+// ----------------------------------------------------------------------------
+// 9. BẢNG CHI_TIET_GIO_HANG
+// ----------------------------------------------------------------------------
+model CHI_TIET_GIO_HANG {
+  machitietgio Int     @id @default(autoincrement())
+  magiohang    Int
+  masanpham    Int
+  soluong      Int
+  dongia       Decimal @db.Decimal(15, 2)
+
+  GIO_HANG GIO_HANG @relation(fields: [magiohang], references: [magiohang], onDelete: Cascade, onUpdate: Cascade)
+  SAN_PHAM SAN_PHAM @relation(fields: [masanpham], references: [masanpham], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([magiohang, masanpham], name: "uq_chitietgiohang_giohang_sanpham")
+  @@index([magiohang])
+  @@index([masanpham])
+  @@map("CHI_TIET_GIO_HANG")
+}
+
+// ----------------------------------------------------------------------------
+// 10. BẢNG DON_HANG
+// ----------------------------------------------------------------------------
+model DON_HANG {
+  madonhang           Int       @id @default(autoincrement())
+  makhachhang         Int
+  manhanvien          Int?
+  ngaydat             DateTime  @default(now())
+  ngayxacnhan         DateTime?
+  tongtien            Decimal   @db.Decimal(15, 2)
+  phuongthucthanhtoan String    @default("COD") @db.VarChar(50) // COD | CHUYEN_KHOAN
+  trangthai           String    @default("CHO_XAC_NHAN") @db.VarChar(30) // CHO_XAC_NHAN | DA_XAC_NHAN | DANG_GIAO | HOAN_THANH | DA_HUY
+
+  KHACH_HANG        KHACH_HANG          @relation(fields: [makhachhang], references: [makhachhang], onDelete: Restrict, onUpdate: Cascade)
+  NHAN_VIEN         NHAN_VIEN?          @relation(fields: [manhanvien], references: [manhanvien], onDelete: SetNull, onUpdate: Cascade)
+  CHI_TIET_DON_HANG CHI_TIET_DON_HANG[]
+  HOA_DON           HOA_DON[]
+
+  @@index([makhachhang])
+  @@index([manhanvien])
+  @@index([trangthai])
+  @@index([ngaydat])
+  @@map("DON_HANG")
+}
+
+// ----------------------------------------------------------------------------
+// 11. BẢNG CHI_TIET_DON_HANG
+// ----------------------------------------------------------------------------
+model CHI_TIET_DON_HANG {
+  machitiet Int     @id @default(autoincrement())
+  madonhang Int
+  masanpham Int
+  soluong   Int
+  dongia    Decimal @db.Decimal(15, 2)
+  thanhtien Decimal @db.Decimal(15, 2)
+
+  DON_HANG DON_HANG @relation(fields: [madonhang], references: [madonhang], onDelete: Cascade, onUpdate: Cascade)
+  // ON DELETE RESTRICT: Tuyệt đối không xóa vật lý sản phẩm đã có đơn hàng
+  SAN_PHAM SAN_PHAM @relation(fields: [masanpham], references: [masanpham], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([madonhang, masanpham], name: "uq_chitietdonhang_donhang_sanpham")
+  @@index([madonhang])
+  @@index([masanpham])
+  @@map("CHI_TIET_DON_HANG")
+}
+
+// ----------------------------------------------------------------------------
+// 12. BẢNG HOA_DON
+// ----------------------------------------------------------------------------
+model HOA_DON {
+  mahoadon   Int      @id @default(autoincrement())
+  madonhang  Int      @unique
+  ngaylap    DateTime @default(now())
+  tongtien   Decimal  @db.Decimal(15, 2)
+  hinhthuctt String   @db.VarChar(50)
+
+  DON_HANG DON_HANG @relation(fields: [madonhang], references: [madonhang], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([ngaylap])
+  @@map("HOA_DON")
+}
+
+// ----------------------------------------------------------------------------
+// 13. BẢNG BAO_CAO_DOANH_THU
+// ----------------------------------------------------------------------------
+model BAO_CAO_DOANH_THU {
+  mabaocao            Int      @id @default(autoincrement())
+  ngaybatdau          DateTime
+  ngayketthuc         DateTime
+  tongdoanhthu        Decimal  @default(0) @db.Decimal(15, 2)
+  tongsodonhang       Int      @default(0)
+  soluongsanphamdaban Int      @default(0)
+
+  @@index([ngaybatdau, ngayketthuc])
+  @@map("BAO_CAO_DOANH_THU")
+}
