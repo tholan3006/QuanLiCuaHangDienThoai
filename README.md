@@ -148,3 +148,19 @@ npm run dev
 ```
 - Giao diện Quản lý Sản phẩm (Nhân viên - TV2): `http://localhost:3000/staff/products`
 - Giao diện Danh sách Sản phẩm (Khách hàng): `http://localhost:3000/products`
+- Giao diện Hóa đơn Bán hàng (Nhân viên - TV5): `http://localhost:3000/staff/invoices`
+- Giao diện Dashboard Thống kê (Nhân viên - TV5): `http://localhost:3000/staff/dashboard`
+
+---
+
+## Hướng dẫn Kiểm thử Phân hệ Hóa đơn & Thống kê (Thành viên 5)
+
+1. **Quản lý Hóa đơn Bán hàng (`/staff/invoices`):**
+   - Đăng nhập tài khoản nhân viên: `nhanvien1` / `123456`.
+   - Tìm kiếm, lọc theo ngày, theo trạng thái `ISSUED` (Hợp lệ) và `VOID` (Đã hủy).
+   - Bấm nút **In A4** để xem chi tiết và in hóa đơn khổ chuẩn A4 qua `react-to-print`.
+
+2. **Dashboard Báo cáo & Thống kê (`/staff/dashboard`):**
+   - Xem tổng doanh thu bán ròng (tự động loại bỏ hoàn toàn các hóa đơn `VOID`).
+   - Xem biểu đồ đường biến động doanh thu theo thời gian (`Chart.js`).
+   - Xem danh sách Top 5 sản phẩm iPhone bán chạy nhất và tỷ lệ đơn hàng bị hủy.

@@ -59,6 +59,7 @@ model NHAN_VIEN {
 
   TAI_KHOAN TAI_KHOAN  @relation(fields: [mataikhoan], references: [mataikhoan], onDelete: Cascade, onUpdate: Cascade)
   DON_HANG  DON_HANG[]
+  HOA_DON   HOA_DON[]
 
   @@map("NHAN_VIEN")
 }
@@ -216,7 +217,7 @@ model CHI_TIET_DON_HANG {
 }
 
 // ----------------------------------------------------------------------------
-// 12. BẢNG HOA_DON
+// 12. BẢNG HOA_DON (Phụ trách chính TV5)
 // ----------------------------------------------------------------------------
 model HOA_DON {
   mahoadon   Int      @id @default(autoincrement())
@@ -224,10 +225,15 @@ model HOA_DON {
   ngaylap    DateTime @default(now())
   tongtien   Decimal  @db.Decimal(15, 2)
   hinhthuctt String   @db.VarChar(50)
+  trangthai  String   @default("ISSUED") @db.VarChar(30) // ISSUED | VOID
+  manhanvien Int?
 
-  DON_HANG DON_HANG @relation(fields: [madonhang], references: [madonhang], onDelete: Restrict, onUpdate: Cascade)
+  DON_HANG  DON_HANG   @relation(fields: [madonhang], references: [madonhang], onDelete: Restrict, onUpdate: Cascade)
+  NHAN_VIEN NHAN_VIEN? @relation(fields: [manhanvien], references: [manhanvien], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([ngaylap])
+  @@index([trangthai])
+  @@index([manhanvien])
   @@map("HOA_DON")
 }
 
