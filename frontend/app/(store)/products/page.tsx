@@ -76,7 +76,7 @@ export default function StoreProductsPage() {
             {user ? (
               <>
                 <span className="hidden text-sm text-slate-600 sm:inline">
-                  {user.email}
+                  {user.hoten ?? user.email}
                 </span>
                 <Dropdown
                   menu={{
