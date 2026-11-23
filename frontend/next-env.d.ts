@@ -1,12 +1,5 @@
-// Ambient declarations cho môi trường Next.js & Browser
-declare namespace NodeJS {
-  interface ProcessEnv {
-    NEXT_PUBLIC_API_URL?: string;
-    NODE_ENV?: 'development' | 'production' | 'test';
-    [key: string]: string | undefined;
-  }
-}
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
 
-declare var process: {
-  env: NodeJS.ProcessEnv;
-};
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/building-your-application/configuring/typescript for more information.
