@@ -222,13 +222,20 @@ export class UsersService {
 
   private getFullName(
     account: {
+      tendangnhap: string;
       NHAN_VIEN: { hoten: string }[];
       KHACH_HANG: { hoten: string }[];
     },
     role: AppRole | undefined,
   ) {
-    if (role === 'CUSTOMER') return account.KHACH_HANG[0]?.hoten ?? '';
-    return account.NHAN_VIEN[0]?.hoten ?? account.KHACH_HANG[0]?.hoten ?? '';
+    if (role === 'CUSTOMER') {
+      return account.KHACH_HANG[0]?.hoten ?? account.tendangnhap;
+    }
+    return (
+      account.NHAN_VIEN[0]?.hoten ??
+      account.KHACH_HANG[0]?.hoten ??
+      account.tendangnhap
+    );
   }
 
   private isUniqueViolation(error: unknown): boolean {

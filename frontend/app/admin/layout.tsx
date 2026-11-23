@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -11,14 +11,24 @@ import {
 } from '@ant-design/icons';
 import { Avatar, Button, Dropdown, Layout, Menu } from 'antd';
 import AuthGuard from '../../components/auth/AuthGuard';
-import { clearAuth } from '../../lib/auth';
+import { AuthUser, clearAuth, readAuthUser } from '../../lib/auth';
 
 const { Header, Sider, Content } = Layout;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const updateUser = () => setUser(readAuthUser());
+    updateUser();
+    window.addEventListener('auth-change', updateUser);
+    return () => window.removeEventListener('auth-change', updateUser);
+  }, []);
+
+  const displayName = user?.hoten ?? user?.tendangnhap ?? 'Quản trị viên';
 
   return (
     <AuthGuard allowedRoles={['ADMIN']}>
@@ -57,7 +67,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               onClick={() => setCollapsed(!collapsed)}
             />
             <div className="flex items-center gap-4">
-              <span className="text-sm font-semibold">Quản trị hệ thống</span>
+              <div className="hidden text-right sm:block">
+                <div className="text-sm font-semibold">{displayName}</div>
+                <div className="text-xs text-gray-500">Quản trị viên</div>
+              </div>
               <Dropdown
                 menu={{
                   items: [
@@ -74,7 +87,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }}
                 trigger={['click']}
               >
-                <Avatar className="cursor-pointer bg-blue-600">A</Avatar>
+                <Avatar className="cursor-pointer bg-blue-600">
+                  {displayName.charAt(0).toUpperCase()}
+                </Avatar>
               </Dropdown>
             </div>
           </Header>
