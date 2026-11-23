@@ -8,8 +8,12 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -31,6 +35,8 @@ export class ProductsController {
   }
 
   @Get('staff')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary:
       'Danh sách quản lý sản phẩm cho Nhân viên bán hàng (Hiển thị đầy đủ cả sản phẩm đã ẩn & thống kê tồn kho)',
@@ -40,6 +46,8 @@ export class ProductsController {
   }
 
   @Get('staff/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary: 'Xem chi tiết sản phẩm & lịch sử cập nhật tồn kho (TON_KHO) dành cho Nhân viên',
   })
@@ -56,6 +64,8 @@ export class ProductsController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary: 'Thêm mới phiên bản sản phẩm iPhone (kèm khởi tạo bản ghi TON_KHO)',
   })
@@ -64,6 +74,8 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary: 'Chỉnh sửa thông tin phiên bản sản phẩm iPhone',
   })
@@ -75,6 +87,8 @@ export class ProductsController {
   }
 
   @Patch(':id/stock-price')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary: 'Cập nhật nhanh Giá bán, Số lượng tồn kho (ghi vào TON_KHO) và Hình ảnh',
   })
@@ -86,6 +100,8 @@ export class ProductsController {
   }
 
   @Patch(':id/hide')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary: 'Ẩn / Ngừng kinh doanh sản phẩm (Soft Delete - TrangThai = NGUNG_KINH_DOANH)',
   })
@@ -94,6 +110,8 @@ export class ProductsController {
   }
 
   @Patch(':id/restore')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary: 'Khôi phục kinh doanh sản phẩm đã ẩn',
   })
@@ -102,6 +120,8 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'STAFF')
   @ApiOperation({
     summary:
       'Ngừng kinh doanh sản phẩm (Thực hiện Soft Delete, tuyệt đối không xóa vật lý sản phẩm đã có đơn hàng)',

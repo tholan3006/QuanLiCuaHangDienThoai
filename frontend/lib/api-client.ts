@@ -1,3 +1,5 @@
+import { clearAuth } from './auth';
+
 /**
  * HTTP Client dùng chung toàn hệ thống Frontend
  * Tự động kết nối tới Backend NestJS (NEXT_PUBLIC_API_URL) và xử lý lỗi chuẩn.
@@ -42,6 +44,9 @@ export async function apiRequest<T>(
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== 'undefined') {
+      clearAuth();
+    }
     const message = Array.isArray(data?.message)
       ? data.message.join(', ')
       : data?.message || `Lỗi kết nối máy chủ (HTTP ${response.status})`;

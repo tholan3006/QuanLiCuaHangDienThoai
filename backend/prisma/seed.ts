@@ -20,7 +20,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('--- [TV5] Bắt đầu khởi tạo dữ liệu mẫu (Seed Data) cho 13 bảng ---');
 
-  const defaultPasswordHash = '$2b$10$EpRnTzVlqHNP0.fUbXUwSOyuiXe/QLSUG6xNekdHgTGmrpHEfIoxm'; // '123456'
+  const defaultPasswordHash = '$2b$10$kg37ufgLwgJ.3RDgfOG5yO2jVvyNqLy4bGwCA/xoZv9xANnLsXV3W'; // '123456'
 
   // 1. Dọn dẹp dữ liệu cũ theo thứ tự ràng buộc khóa ngoại
   console.log('1. Làm sạch dữ liệu theo thứ tự khóa ngoại...');
@@ -657,6 +657,28 @@ async function main() {
       soluongsanphamdaban: 3, // 1 máy SP #1 + 1 máy SP #9 + 1 máy SP #13
     },
   });
+
+  const serialColumns = [
+    ['VAI_TRO', 'mavaitro'],
+    ['TAI_KHOAN', 'mataikhoan'],
+    ['NHAN_VIEN', 'manhanvien'],
+    ['KHACH_HANG', 'makhachhang'],
+    ['DANH_MUC', 'madanhmuc'],
+    ['SAN_PHAM', 'masanpham'],
+    ['TON_KHO', 'matonkho'],
+    ['GIO_HANG', 'magiohang'],
+    ['CHI_TIET_GIO_HANG', 'machitietgio'],
+    ['DON_HANG', 'madonhang'],
+    ['CHI_TIET_DON_HANG', 'machitiet'],
+    ['HOA_DON', 'mahoadon'],
+    ['BAO_CAO_DOANH_THU', 'mabaocao'],
+  ] as const;
+
+  for (const [table, column] of serialColumns) {
+    await prisma.$queryRawUnsafe(
+      `SELECT setval(pg_get_serial_sequence('"${table}"', '${column}'), COALESCE((SELECT MAX("${column}") FROM "${table}"), 1), true)`,
+    );
+  }
 
   console.log('--- [TV5] Hoàn tất khởi tạo dữ liệu mẫu thành công cho 13 bảng! ---');
 }

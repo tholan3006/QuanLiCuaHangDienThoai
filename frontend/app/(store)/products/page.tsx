@@ -1,7 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
+import { Avatar, Dropdown } from 'antd';
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { AuthUser, clearAuth, readAuthUser } from '../../../lib/auth';
 import {
   categoriesApi,
   CategoryItem,
@@ -20,6 +24,15 @@ export default function StoreProductsPage() {
     'newest' | 'price_asc' | 'price_desc' | 'name_asc'
   >('newest');
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const updateUser = () => setUser(readAuthUser());
+    updateUser();
+    window.addEventListener('auth-change', updateUser);
+    return () => window.removeEventListener('auth-change', updateUser);
+  }, []);
 
   const loadStoreProducts = useCallback(async () => {
     setLoading(true);
@@ -59,12 +72,49 @@ export default function StoreProductsPage() {
             </span>
           </Link>
 
-          <Link
-            href="/staff/products"
-            className="rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-blue-700"
-          >
-            Chuyển sang Quản lý Sản phẩm (Nhân viên) →
-          </Link>
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <span className="hidden text-sm text-slate-600 sm:inline">
+                  {user.email}
+                </span>
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'logout',
+                        icon: <LogoutOutlined />,
+                        label: 'Đăng xuất',
+                        onClick: () => {
+                          clearAuth();
+                          router.replace('/auth');
+                        },
+                      },
+                    ],
+                  }}
+                  trigger={['click']}
+                >
+                  <Avatar
+                    icon={<UserOutlined />}
+                    className="cursor-pointer bg-blue-600"
+                  />
+                </Dropdown>
+              </>
+            ) : (
+              <Link
+                href="/auth"
+                className="rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+              >
+                Đăng nhập / Đăng ký
+              </Link>
+            )}
+            <Link
+              href="/staff/products"
+              className="rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-blue-700"
+            >
+              Chuyển sang Quản lý Sản phẩm (Nhân viên) →
+            </Link>
+          </div>
         </div>
       </header>
 
