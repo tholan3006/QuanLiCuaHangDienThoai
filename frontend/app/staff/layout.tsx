@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -16,17 +16,25 @@ import {
 } from '@ant-design/icons';
 import { Avatar, Button, Dropdown, Layout, Menu, theme } from 'antd';
 import AuthGuard from '../../components/auth/AuthGuard';
-import { clearAuth } from '../../lib/auth';
+import { AuthUser, clearAuth, readAuthUser } from '../../lib/auth';
 
 const { Header, Sider, Content } = Layout;
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  useEffect(() => {
+    const updateUser = () => setUser(readAuthUser());
+    updateUser();
+    window.addEventListener('auth-change', updateUser);
+    return () => window.removeEventListener('auth-change', updateUser);
+  }, []);
 
   const menuItems = [
     {
@@ -105,8 +113,12 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             />
             <div className="flex items-center gap-4">
               <div className="hidden text-right sm:block">
-                <div className="text-xs font-bold text-gray-800">Trần Minh Tuấn</div>
-                <div className="text-xs text-gray-500">Chuyên viên bán hàng (Staff)</div>
+                <div className="text-xs font-bold text-gray-800">
+                  {user?.hoten ?? user?.tendangnhap ?? 'Tài khoản'}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {user?.chucvu ?? (user?.role === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên')}
+                </div>
               </div>
               <Dropdown
                 menu={{

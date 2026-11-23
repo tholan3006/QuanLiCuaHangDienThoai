@@ -5,6 +5,8 @@ export interface AuthUser {
   tendangnhap: string;
   email: string;
   role: AppRole;
+  hoten?: string;
+  chucvu?: string | null;
 }
 
 export interface AuthResponse {

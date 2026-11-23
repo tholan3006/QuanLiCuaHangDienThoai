@@ -40,7 +40,7 @@ export class AuthService {
             create: { hoten: dto.email.split('@')[0] },
           },
         },
-        include: { VAI_TRO: true },
+        include: { VAI_TRO: true, NHAN_VIEN: true, KHACH_HANG: true },
       });
 
       return this.issueToken(account, 'CUSTOMER');
@@ -63,7 +63,7 @@ export class AuthService {
           { email: dto.identifier },
         ],
       },
-      include: { VAI_TRO: true },
+      include: { VAI_TRO: true, NHAN_VIEN: true, KHACH_HANG: true },
     });
     const validPassword =
       account && (await bcrypt.compare(dto.password, account.matkhau));
@@ -85,6 +85,8 @@ export class AuthService {
       mataikhoan: number;
       tendangnhap: string;
       email: string;
+      NHAN_VIEN?: { hoten: string; chucvu: string | null }[];
+      KHACH_HANG?: { hoten: string }[];
     },
     role: string,
   ) {
@@ -93,6 +95,11 @@ export class AuthService {
       tendangnhap: account.tendangnhap,
       email: account.email,
       role,
+      hoten:
+        account.NHAN_VIEN?.[0]?.hoten ??
+        account.KHACH_HANG?.[0]?.hoten ??
+        account.tendangnhap,
+      chucvu: account.NHAN_VIEN?.[0]?.chucvu,
     };
     return {
       access_token: this.jwtService.sign({ sub: account.mataikhoan }),
