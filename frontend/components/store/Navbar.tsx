@@ -16,6 +16,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   authApi,
   CustomerProfile,
@@ -27,14 +28,14 @@ import AuthModal from './AuthModal';
 
 export default function StoreNavbar() {
   const router = useRouter();
+  const { lang, toggleLang, t } = useLanguage();
+
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // Theme state: 'light' | 'dark'
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-  // Language state: 'VI' | 'EN'
-  const [lang, setLang] = useState<'VI' | 'EN'>('VI');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // States tìm kiếm gợi ý tức thì (Live Autocomplete Search)
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -51,7 +52,7 @@ export default function StoreNavbar() {
     setCartCount(total);
   }, [items]);
 
-  // Khởi tạo Theme & Lang từ LocalStorage
+  // Khởi tạo Theme từ LocalStorage và gán class vào <html>
   useEffect(() => {
     const curCustomer = authApi.getCurrentCustomer();
     setCustomer(curCustomer);
@@ -68,22 +69,15 @@ export default function StoreNavbar() {
     };
     window.addEventListener('open-auth-modal', handleOpenAuth);
 
-    // Theme check
+    // Kiểm tra theme đã lưu
     const savedTheme = localStorage.getItem('istore_theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    } else {
+    if (savedTheme === 'dark') {
+      setTheme('dark');
       document.documentElement.classList.add('dark');
+    } else {
+      setTheme('light');
+      document.documentElement.classList.remove('dark');
     }
-
-    // Lang check
-    const savedLang = localStorage.getItem('istore_lang') as 'VI' | 'EN' | null;
-    if (savedLang) setLang(savedLang);
 
     return () => {
       window.removeEventListener('auth-change', handleAuthChange);
@@ -100,12 +94,6 @@ export default function StoreNavbar() {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  };
-
-  const toggleLang = () => {
-    const nextLang = lang === 'VI' ? 'EN' : 'VI';
-    setLang(nextLang);
-    localStorage.setItem('istore_lang', nextLang);
   };
 
   // Xử lý tìm kiếm gợi ý tức thời khi người dùng gõ phím
@@ -181,14 +169,17 @@ export default function StoreNavbar() {
     }
   };
 
+  const isStaffOrAdmin = customer && (customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN');
+  const isAdmin = customer && customer.role === 'ADMIN';
+
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-900/95 backdrop-blur text-white shadow-sm transition-colors duration-200">
+      <header className="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur text-slate-900 dark:text-white shadow-sm transition-colors duration-200">
         {/* Main Navbar */}
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 gap-3 sm:gap-4">
           {/* Logo IStore */}
           <Link href="/" className="flex items-center gap-2.5 sm:gap-3 shrink-0 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 border border-slate-700/80 group-hover:border-sky-500 transition-all shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-700/80 group-hover:border-sky-500 transition-all shadow-sm">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15.2 3.5C15.9 2.5 17 1.9 18.2 1.8C18.3 3.1 17.8 4.3 17 5.2C16.2 6.1 15 6.7 13.8 6.6C13.7 5.3 14.3 4.2 15.2 3.5Z" fill="#38BDF8"/>
                 <path d="M19.3 10.3C19.2 8.3 20.8 7.2 20.9 7.1C19.9 5.8 18.4 5.6 17.9 5.6C16.6 5.5 15.4 6.3 14.8 6.3C14.1 6.3 13.1 5.6 12 5.6C10.6 5.6 9.3 6.4 8.6 7.6C7.2 10 8.3 13.7 9.7 15.7C10.4 16.7 11.2 17.7 12.3 17.6C13.4 17.5 13.8 16.9 15 16.9C16.2 16.9 16.6 17.6 17.8 17.6C18.9 17.6 19.6 16.7 20.3 15.7C21.1 14.5 21.4 13.4 21.5 13.3C21.4 13.2 19.4 12.4 19.3 10.3Z" fill="#F8FAFC"/>
@@ -196,11 +187,11 @@ export default function StoreNavbar() {
             </div>
             <div>
               <div className="font-black tracking-tight text-lg sm:text-xl flex items-center leading-none">
-                <span className="text-sky-400">i</span>
-                <span className="text-white">Store</span>
+                <span className="text-sky-500">i</span>
+                <span className="text-slate-900 dark:text-white">Store</span>
               </div>
-              <div className="text-[11px] text-slate-400 tracking-wide mt-1 hidden sm:block">
-                Hệ thống phân phối iPhone
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 tracking-wide mt-1 hidden sm:block">
+                {lang === 'VI' ? 'Hệ thống phân phối iPhone' : 'Authorized iPhone Reseller'}
               </div>
             </div>
           </Link>
@@ -216,15 +207,15 @@ export default function StoreNavbar() {
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                placeholder={lang === 'VI' ? 'Tìm iPhone 16 Pro Max, Titan Sa Mạc, 256GB...' : 'Search iPhone 16 Pro, Desert Titanium...'}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/90 pl-10 pr-9 py-2 text-xs text-white placeholder-slate-400 focus:border-sky-500 focus:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+                placeholder={t('search_placeholder')}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/90 pl-10 pr-9 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-sky-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
               />
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               {searchKeyword && (
                 <button
                   type="button"
                   onClick={() => setSearchKeyword('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -233,34 +224,34 @@ export default function StoreNavbar() {
 
             {/* DROPDOWN GỢI Ý SẢN PHẨM REALTIME */}
             {showSuggestions && searchKeyword.trim().length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-slate-700 bg-slate-800/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 border-b border-slate-700/60 flex items-center justify-between">
-                  <span>{lang === 'VI' ? 'Gợi ý sản phẩm' : 'Product suggestions'} ({searchResults.length})</span>
-                  {isSearching && <span className="text-sky-400 animate-pulse">{lang === 'VI' ? 'Đang tìm...' : 'Searching...'}</span>}
+              <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                  <span>{t('suggestions')} ({searchResults.length})</span>
+                  {isSearching && <span className="text-sky-500 animate-pulse">{t('searching')}</span>}
                 </div>
 
                 {searchResults.length > 0 ? (
-                  <div className="divide-y divide-slate-700/40 max-h-80 overflow-y-auto">
+                  <div className="divide-y divide-slate-100 dark:divide-slate-700/40 max-h-80 overflow-y-auto">
                     {searchResults.map((item) => (
                       <button
                         key={item.masanpham}
                         type="button"
                         onClick={() => handleSelectProduct(item.masanpham)}
-                        className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-700/70 text-left transition-colors group"
+                        className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 text-left transition-colors group"
                       >
-                        <div className="h-10 w-10 shrink-0 rounded-lg bg-slate-900/60 p-1 flex items-center justify-center overflow-hidden">
+                        <div className="h-10 w-10 shrink-0 rounded-lg bg-slate-50 dark:bg-slate-900/60 p-1 flex items-center justify-center overflow-hidden">
                           {item.hinhanh ? (
                             <img
                               src={item.hinhanh}
                               alt={item.tensanpham}
-                              className="h-full w-full object-contain"
+                              className="h-full w-full object-contain filter drop-shadow-sm"
                             />
                           ) : (
                             <span className="text-xs text-slate-400">iPhone</span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-xs text-white group-hover:text-sky-400 transition-colors truncate">
+                          <div className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
                             {item.tensanpham}
                           </div>
                           <div className="text-[11px] text-slate-400 truncate">
@@ -268,11 +259,11 @@ export default function StoreNavbar() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="text-xs font-black text-rose-400">
+                          <div className="text-xs font-black text-rose-600 dark:text-rose-400">
                             {item.giaban.toLocaleString('vi-VN')} ₫
                           </div>
-                          <div className="text-[10px] text-emerald-400">
-                            {item.soluongton > 0 ? `Còn ${item.soluongton}` : 'Hết hàng'}
+                          <div className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                            {item.soluongton > 0 ? `${t('only_left')} ${item.soluongton} ${t('units_left')}` : t('out_of_stock')}
                           </div>
                         </div>
                       </button>
@@ -282,15 +273,15 @@ export default function StoreNavbar() {
                       <button
                         type="button"
                         onClick={handleSearchSubmit}
-                        className="w-full rounded-lg bg-slate-700/60 py-2 text-center text-xs font-bold text-sky-400 hover:bg-slate-700 transition-colors"
+                        className="w-full rounded-lg bg-slate-100 dark:bg-slate-700/60 py-2 text-center text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                       >
-                        {lang === 'VI' ? `Xem tất cả cho "${searchKeyword}" ➔` : `View all results for "${searchKeyword}" ➔`}
+                        {t('view_all_for')} &quot;{searchKeyword}&quot; ➔
                       </button>
                     </div>
                   </div>
                 ) : !isSearching ? (
                   <div className="p-4 text-center text-xs text-slate-400">
-                    {lang === 'VI' ? `Không tìm thấy iPhone nào khớp với "${searchKeyword}"` : `No iPhone matched "${searchKeyword}"`}
+                    {t('not_found')} &quot;{searchKeyword}&quot;
                   </div>
                 ) : null}
               </div>
@@ -303,40 +294,40 @@ export default function StoreNavbar() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:border-sky-500 transition-all"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-sky-500 transition-all"
               title={theme === 'dark' ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
             >
-              {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-sky-400" />}
+              {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-sky-600" />}
             </button>
 
             {/* Nút Toggle Ngôn ngữ EN / VI */}
             <button
               type="button"
               onClick={toggleLang}
-              className="flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-xs font-bold text-slate-200 hover:border-sky-500 hover:text-white transition-all"
+              className="flex items-center gap-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-sky-500 transition-all"
               title="Đổi ngôn ngữ (VI / EN)"
             >
-              <Globe className="h-3.5 w-3.5 text-sky-400" />
+              <Globe className="h-3.5 w-3.5 text-sky-500" />
               <span>{lang}</span>
             </button>
 
             {/* Link danh mục sản phẩm */}
             <Link
               href="/products"
-              className="hidden lg:flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-colors"
+              className="hidden lg:flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <span>{lang === 'VI' ? 'Sản Phẩm' : 'Products'}</span>
+              <span>{t('products')}</span>
             </Link>
 
             {/* Giỏ hàng với badge (Chặn nếu chưa đăng nhập) */}
             <Link
               href="/cart"
               onClick={handleCartClick}
-              className="relative flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-bold text-white hover:border-sky-500 hover:bg-slate-800 transition-all shadow-sm"
-              title={customer ? 'Xem giỏ hàng' : 'Đăng nhập để xem giỏ hàng'}
+              className="relative flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-800 dark:text-white hover:border-sky-500 transition-all shadow-sm"
+              title={customer ? t('cart') : t('sign_in')}
             >
-              <ShoppingBag className="h-4 w-4 text-sky-400" />
-              <span className="hidden sm:inline">{lang === 'VI' ? 'Giỏ hàng' : 'Cart'}</span>
+              <ShoppingBag className="h-4 w-4 text-sky-500" />
+              <span className="hidden sm:inline">{t('cart')}</span>
               {customer && cartCount > 0 && (
                 <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-extrabold text-white">
                   {cartCount}
@@ -349,37 +340,63 @@ export default function StoreNavbar() {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-100 hover:border-sky-500 transition-all"
+                  className="flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 hover:border-sky-500 transition-all"
                 >
-                  <User className="h-4 w-4 text-sky-400" />
+                  <User className="h-4 w-4 text-sky-500" />
                   <span className="max-w-[100px] truncate">{customer.hoten}</span>
                   <ChevronDown className="h-3 w-3 text-slate-400" />
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-700 bg-slate-800 p-2 shadow-2xl z-50 text-xs">
-                    <div className="px-3 py-2 border-b border-slate-700/60">
-                      <div className="font-bold text-white">{customer.hoten}</div>
+                  <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 shadow-2xl z-50 text-xs">
+                    <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700/60">
+                      <div className="font-bold text-slate-900 dark:text-white">{customer.hoten}</div>
                       <div className="text-[11px] text-slate-400 truncate">{customer.email}</div>
-                      <div className="mt-1 inline-block rounded bg-sky-500/20 px-2 py-0.5 text-[10px] font-semibold text-sky-300">
-                        {lang === 'VI' ? 'Khách hàng thành viên' : 'Member Customer'}
+                      <div className="mt-1 inline-block rounded bg-sky-500/10 text-sky-600 dark:text-sky-300 px-2 py-0.5 text-[10px] font-bold">
+                        {customer.role === 'ADMIN'
+                          ? 'Quản Trị Viên (Admin)'
+                          : customer.role === 'NHAN_VIEN'
+                            ? 'Nhân Viên Bán Hàng (Staff)'
+                            : t('member_customer')}
                       </div>
                     </div>
 
                     <Link
                       href="/checkout"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-slate-200 hover:bg-slate-700 transition-colors"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                     >
-                      <span>{lang === 'VI' ? 'Đơn hàng & Thanh toán' : 'Order & Payment'}</span>
+                      <span>{t('order_payment')}</span>
                     </Link>
+
+                    {/* Phân quyền: Chỉ Staff / Admin mới thấy liên kết nội bộ */}
+                    {isStaffOrAdmin && (
+                      <Link
+                        href="/staff/products"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
+                      >
+                        <ShieldAlert className="h-3.5 w-3.5 text-sky-500" />
+                        <span>{t('staff_portal')} (A4)</span>
+                      </Link>
+                    )}
+
+                    {isAdmin && (
+                      <Link
+                        href="/admin/users"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
+                      >
+                        <span>{t('admin_portal')} (Server)</span>
+                      </Link>
+                    )}
 
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left font-medium text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                     >
                       <LogOut className="h-3.5 w-3.5" />
-                      <span>{lang === 'VI' ? 'Đăng xuất' : 'Sign out'}</span>
+                      <span>{t('sign_out')}</span>
                     </button>
                   </div>
                 )}
@@ -390,56 +407,46 @@ export default function StoreNavbar() {
                 className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/30 hover:bg-sky-500 transition-all shrink-0"
               >
                 <LogIn className="h-3.5 w-3.5" />
-                <span>{lang === 'VI' ? 'Đăng Nhập' : 'Sign In'}</span>
+                <span>{t('sign_in')}</span>
               </button>
             )}
-
-            {/* Chuyển sang giao diện nhân viên */}
-            <Link
-              href="/staff/products"
-              className="rounded-xl border border-slate-700 bg-slate-800/40 px-3 py-2 text-[11px] font-semibold text-slate-300 hover:border-slate-500 hover:text-white transition-all hidden xl:flex items-center gap-1.5"
-              title="Chuyển tới giao diện dành cho nhân viên bán hàng"
-            >
-              <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
-              <span>Nhân viên</span>
-            </Link>
           </div>
         </div>
 
         {/* Sub-navigation các dòng iPhone */}
-        <nav className="border-t border-slate-800/60 bg-slate-900/60 overflow-x-auto scrollbar-none">
-          <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 sm:px-6 text-xs text-slate-300">
+        <nav className="border-t border-slate-200 dark:border-slate-800/60 bg-slate-50/80 dark:bg-slate-900/60 overflow-x-auto scrollbar-none">
+          <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 sm:px-6 text-xs text-slate-600 dark:text-slate-300">
             <Link
               href="/products"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-800 hover:text-white transition-colors"
+              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             >
-              {lang === 'VI' ? 'Tất cả iPhone' : 'All iPhones'}
+              {t('all_iphone')}
             </Link>
-            <span className="text-slate-700">•</span>
+            <span className="text-slate-400 dark:text-slate-700">•</span>
             <Link
               href="/products?madanhmuc=1"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold text-sky-400 hover:bg-slate-800 transition-colors"
+              className="shrink-0 rounded-lg px-3 py-1 font-semibold text-sky-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             >
               iPhone 16 Series
             </Link>
-            <span className="text-slate-700">•</span>
+            <span className="text-slate-400 dark:text-slate-700">•</span>
             <Link
               href="/products?madanhmuc=2"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-800 hover:text-white transition-colors"
+              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             >
               iPhone 15 Series
             </Link>
-            <span className="text-slate-700">•</span>
+            <span className="text-slate-400 dark:text-slate-700">•</span>
             <Link
               href="/products?madanhmuc=3"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-800 hover:text-white transition-colors"
+              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             >
               iPhone 14 Series
             </Link>
-            <span className="text-slate-700">•</span>
+            <span className="text-slate-400 dark:text-slate-700">•</span>
             <Link
               href="/products?madanhmuc=4"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-800 hover:text-white transition-colors"
+              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             >
               iPhone 13 Series
             </Link>

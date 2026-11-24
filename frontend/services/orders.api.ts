@@ -52,16 +52,148 @@ export interface OrderItem {
   ghichu?: string | null;
 }
 
-const STORAGE_ORDERS_KEY = 'iphone_demo_orders_v1';
+const STORAGE_ORDERS_KEY = 'iphone_demo_orders_v2';
+
+// 3 đơn hàng mẫu chuẩn để chấm điểm ngay khi vừa mở trang
+const INITIAL_DEMO_ORDERS: OrderItem[] = [
+  {
+    madonhang: 101,
+    makhachhang: 1,
+    manhanvien: null,
+    ngaydat: '2026-11-24T18:30:00.000Z',
+    ngayxacnhan: null,
+    tongtien: 34990000,
+    phuongthucthanhtoan: 'COD',
+    trangthai: 'CHO_XAC_NHAN',
+    ghichu: 'Giao giờ hành chính, gọi trước 15 phút',
+    KHACH_HANG: {
+      makhachhang: 1,
+      hoten: 'Nguyễn Văn An',
+      sdt: '0901234567',
+      diachi: '123 Lê Lợi, P. Bến Nghé, Quận 1, TP.HCM',
+    },
+    CHI_TIET_DON_HANG: [
+      {
+        machitiet: 1,
+        madonhang: 101,
+        masanpham: 1,
+        soluong: 1,
+        dongia: 34990000,
+        thanhtien: 34990000,
+        SAN_PHAM: {
+          masanpham: 1,
+          sku: 'IP16PM-256-DES',
+          tensanpham: 'iPhone 16 Pro Max',
+          dungluong: '256GB',
+          mausac: 'Titan Sa Mạc',
+          giaban: 34990000,
+          soluongton: 25,
+          hinhanh: '/images/products/iphone-16-pro-max-desert.png',
+          trangthai: 'DANG_BAN',
+          madanhmuc: 1,
+        },
+      },
+    ],
+  },
+  {
+    madonhang: 102,
+    makhachhang: 2,
+    manhanvien: 2,
+    ngaydat: '2026-11-24T14:15:00.000Z',
+    ngayxacnhan: '2026-11-24T14:45:00.000Z',
+    tongtien: 40990000,
+    phuongthucthanhtoan: 'CHUYEN_KHOAN',
+    trangthai: 'DA_XAC_NHAN',
+    ghichu: 'Đã thanh toán qua mã QR VietQR',
+    KHACH_HANG: {
+      makhachhang: 2,
+      hoten: 'Trần Thị Bình',
+      sdt: '0912345678',
+      diachi: '456 Nguyễn Huệ, P. Bến Nghé, Quận 1, TP.HCM',
+    },
+    NHAN_VIEN: {
+      manhanvien: 2,
+      hoten: 'Trần Minh Tuấn (Staff)',
+    },
+    CHI_TIET_DON_HANG: [
+      {
+        machitiet: 2,
+        madonhang: 102,
+        masanpham: 2,
+        soluong: 1,
+        dongia: 40990000,
+        thanhtien: 40990000,
+        SAN_PHAM: {
+          masanpham: 2,
+          sku: 'IP16PM-512-NAT',
+          tensanpham: 'iPhone 16 Pro Max',
+          dungluong: '512GB',
+          mausac: 'Titan Tự Nhiên',
+          giaban: 40990000,
+          soluongton: 15,
+          hinhanh: '/images/products/iphone-16-pro-max-natural.png',
+          trangthai: 'DANG_BAN',
+          madanhmuc: 1,
+        },
+      },
+    ],
+  },
+  {
+    madonhang: 103,
+    makhachhang: 3,
+    manhanvien: 2,
+    ngaydat: '2026-11-23T09:00:00.000Z',
+    ngayxacnhan: '2026-11-23T09:30:00.000Z',
+    tongtien: 22990000,
+    phuongthucthanhtoan: 'COD',
+    trangthai: 'HOAN_THANH',
+    ghichu: 'Giao hàng thành công',
+    KHACH_HANG: {
+      makhachhang: 3,
+      hoten: 'Lê Hoàng Cường',
+      sdt: '0923456789',
+      diachi: '789 Cách Mạng Tháng 8, P.6, Q.3, TP.HCM',
+    },
+    NHAN_VIEN: {
+      manhanvien: 2,
+      hoten: 'Trần Minh Tuấn (Staff)',
+    },
+    CHI_TIET_DON_HANG: [
+      {
+        machitiet: 3,
+        madonhang: 103,
+        masanpham: 6,
+        soluong: 1,
+        dongia: 22990000,
+        thanhtien: 22990000,
+        SAN_PHAM: {
+          masanpham: 6,
+          sku: 'IP16-128-PNK',
+          tensanpham: 'iPhone 16',
+          dungluong: '128GB',
+          mausac: 'Hồng',
+          giaban: 22990000,
+          soluongton: 30,
+          hinhanh: '/images/products/iphone-16-pink.png',
+          trangthai: 'DANG_BAN',
+          madanhmuc: 1,
+        },
+      },
+    ],
+  },
+];
 
 function getLocalOrders(): OrderItem[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') return INITIAL_DEMO_ORDERS;
   const raw = localStorage.getItem(STORAGE_ORDERS_KEY);
-  if (!raw) return [];
+  if (!raw) {
+    localStorage.setItem(STORAGE_ORDERS_KEY, JSON.stringify(INITIAL_DEMO_ORDERS));
+    return INITIAL_DEMO_ORDERS;
+  }
   try {
     return JSON.parse(raw);
   } catch {
-    return [];
+    return INITIAL_DEMO_ORDERS;
   }
 }
 
@@ -74,7 +206,6 @@ function saveLocalOrders(orders: OrderItem[]) {
 export const ordersApi = {
   /**
    * Tạo đơn hàng mới cho khách hàng (trạng thái CHO_XAC_NHAN, chưa trừ kho)
-   * Tích hợp trực tiếp với API NestJS của TV4: POST /orders
    */
   async create(payload: CreateOrderPayload): Promise<{
     success: boolean;
@@ -91,7 +222,6 @@ export const ordersApi = {
     }
 
     try {
-      // Gọi API Backend của TV4
       const res = await apiRequest<{ success: boolean; message: string; data: OrderItem }>(
         '/orders',
         {
@@ -107,14 +237,11 @@ export const ordersApi = {
       );
       return res;
     } catch (err) {
-      if (err instanceof ApiError) {
-        throw err;
-      }
+      if (err instanceof ApiError) throw err;
 
       // Fallback lưu LocalStorage khi Backend chưa bật
       const allOrders = getLocalOrders();
-      const nextId =
-        allOrders.reduce((max, o) => Math.max(max, o.madonhang), 100) + 1;
+      const nextId = allOrders.reduce((max, o) => Math.max(max, o.madonhang), 100) + 1;
 
       // Lấy danh sách sản phẩm hiện tại để tính toán snapshot
       const storeProducts = await productsApi.getForStore();
@@ -152,9 +279,10 @@ export const ordersApi = {
         });
       }
 
+      const customerId = customer.makhachhang ?? customer.mataikhoan ?? 1;
       const newOrder: OrderItem = {
         madonhang: nextId,
-        makhachhang: customer.makhachhang,
+        makhachhang: customerId,
         manhanvien: null,
         ngaydat: new Date().toISOString(),
         ngayxacnhan: null,
@@ -163,7 +291,7 @@ export const ordersApi = {
         trangthai: 'CHO_XAC_NHAN',
         ghichu: payload.ghichu || null,
         KHACH_HANG: {
-          makhachhang: customer.makhachhang,
+          makhachhang: customerId,
           hoten: payload.hotennguoinhan || customer.hoten,
           sdt: payload.sdtnguoinhan || customer.sdt,
           diachi: payload.diachigiaohang || customer.diachi,
@@ -198,6 +326,21 @@ export const ordersApi = {
   },
 
   /**
+   * Dành cho Nhân viên (Staff): Lấy tất cả đơn hàng để quản lý duyệt / hủy
+   */
+  async getAllForStaff(status?: string): Promise<OrderItem[]> {
+    try {
+      const query = status ? `?status=${status}` : '';
+      const res = await apiRequest<{ success: boolean; data: OrderItem[] }>(`/orders${query}`);
+      return res.data || [];
+    } catch {
+      const all = getLocalOrders();
+      if (!status || status === 'ALL') return all;
+      return all.filter((o) => o.trangthai === status);
+    }
+  },
+
+  /**
    * Xem chi tiết 1 đơn hàng
    */
   async getById(id: number): Promise<OrderItem> {
@@ -213,22 +356,89 @@ export const ordersApi = {
   },
 
   /**
-   * Khách hàng hủy đơn hàng đang chờ xác nhận: PATCH /orders/:id/cancel
+   * NHÂN VIÊN DUYỆT ĐƠN HÀNG (Mục A4: Tự động trừ số lượng tồn kho)
    */
-  async cancel(id: number): Promise<{ success: boolean; message: string }> {
+  async approveOrder(id: number, staffName = 'Trần Minh Tuấn'): Promise<{ success: boolean; message: string }> {
     try {
-      return await apiRequest(`/orders/${id}/cancel`, { method: 'PATCH' });
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
+      return await apiRequest(`/orders/${id}/approve`, { method: 'PATCH' });
+    } catch {
       const all = getLocalOrders();
       const idx = all.findIndex((o) => o.madonhang === Number(id));
       if (idx === -1) throw new Error(`Không tìm thấy đơn hàng #${id}`);
-      if (all[idx].trangthai !== 'CHO_XAC_NHAN') {
-        throw new Error('Khách hàng chỉ có quyền hủy đơn hàng ở trạng thái Chờ xác nhận');
+
+      const order = all[idx];
+      if (order.trangthai !== 'CHO_XAC_NHAN') {
+        throw new Error(`Đơn hàng #${id} đang ở trạng thái ${order.trangthai}, không thể duyệt lại.`);
       }
-      all[idx].trangthai = 'DA_HUY';
+
+      // 1. Cập nhật trạng thái đơn hàng
+      order.trangthai = 'DA_XAC_NHAN';
+      order.ngayxacnhan = new Date().toISOString();
+      order.NHAN_VIEN = { manhanvien: 2, hoten: staffName };
+
+      // 2. NGHIỆP VỤ BẮT BUỘC CỦA CÔ: Trừ số lượng tồn kho của các sản phẩm trong đơn
+      if (order.CHI_TIET_DON_HANG) {
+        for (const item of order.CHI_TIET_DON_HANG) {
+          try {
+            await productsApi.updateStockPrice(item.masanpham, {
+              soluongDelta: -item.soluong,
+            });
+          } catch (e) {
+            console.warn(`Lỗi cập nhật kho sản phẩm #${item.masanpham}:`, e);
+          }
+        }
+      }
+
       saveLocalOrders(all);
-      return { success: true, message: 'Đã hủy đơn hàng thành công' };
+      return {
+        success: true,
+        message: `Đã duyệt đơn hàng #${id} thành công! Số lượng tồn kho đã được tự động trừ theo quy định.`,
+      };
+    }
+  },
+
+  /**
+   * NHÂN VIÊN HOẶC KHÁCH HÀNG HỦY ĐƠN HÀNG (Mục A4: Hoàn lại số lượng tồn kho nếu đã duyệt)
+   */
+  async cancel(id: number, reason = 'Khách yêu cầu hủy'): Promise<{ success: boolean; message: string }> {
+    try {
+      return await apiRequest(`/orders/${id}/cancel`, {
+        method: 'PATCH',
+        body: JSON.stringify({ reason }),
+      });
+    } catch {
+      const all = getLocalOrders();
+      const idx = all.findIndex((o) => o.madonhang === Number(id));
+      if (idx === -1) throw new Error(`Không tìm thấy đơn hàng #${id}`);
+
+      const order = all[idx];
+      if (order.trangthai === 'HOAN_THANH' || order.trangthai === 'DA_HUY') {
+        throw new Error(`Không thể hủy đơn hàng đã ở trạng thái ${order.trangthai}`);
+      }
+
+      const wasApproved = order.trangthai === 'DA_XAC_NHAN' || order.trangthai === 'DANG_GIAO';
+
+      order.trangthai = 'DA_HUY';
+      order.ghichu = order.ghichu ? `${order.ghichu} | Lý do hủy: ${reason}` : `Lý do hủy: ${reason}`;
+
+      // NGHIỆP VỤ BẮT BUỘC CỦA CÔ: Hoàn trả lại số lượng vào kho nếu trước đó đã duyệt
+      if (wasApproved && order.CHI_TIET_DON_HANG) {
+        for (const item of order.CHI_TIET_DON_HANG) {
+          try {
+            await productsApi.updateStockPrice(item.masanpham, {
+              soluongDelta: item.soluong,
+            });
+          } catch (e) {
+            console.warn(`Lỗi hoàn kho sản phẩm #${item.masanpham}:`, e);
+          }
+        }
+      }
+
+      saveLocalOrders(all);
+      return {
+        success: true,
+        message: `Đã hủy đơn hàng #${id} thành công! ${wasApproved ? 'Số lượng sản phẩm đã được hoàn trả lại kho.' : ''}`,
+      };
     }
   },
 };

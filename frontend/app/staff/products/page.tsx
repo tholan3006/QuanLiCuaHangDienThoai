@@ -1,6 +1,15 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  EyeOff,
+  Package,
+  Plus,
+  Warehouse,
+  XCircle,
+} from 'lucide-react';
 import CategoryManagerModal from '../../../components/staff/products/CategoryManagerModal';
 import ProductFormModal from '../../../components/staff/products/ProductFormModal';
 import ProductTable from '../../../components/staff/products/ProductTable';
@@ -231,73 +240,69 @@ export default function StaffProductsPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-semibold text-slate-500">
-            Tổng số phiên bản
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-semibold">Tổng phiên bản</span>
+            <Package className="h-4 w-4 text-slate-400" />
           </div>
-          <div className="mt-1 text-2xl font-extrabold text-slate-900">
+          <div className="mt-1.5 text-2xl font-black text-slate-900">
             {summary.tongsophienban}
           </div>
           <div className="mt-0.5 text-[11px] text-slate-400">Bảng SAN_PHAM</div>
         </div>
 
         <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 shadow-sm">
-          <div className="text-xs font-semibold text-blue-700">
-            Đang kinh doanh
+          <div className="flex items-center justify-between text-blue-700">
+            <span className="text-xs font-semibold">Đang bán</span>
+            <CheckCircle2 className="h-4 w-4 text-blue-600" />
           </div>
-          <div className="mt-1 text-2xl font-extrabold text-blue-800">
+          <div className="mt-1.5 text-2xl font-black text-blue-800">
             {summary.dangkinhdoanh}
           </div>
-          <div className="mt-0.5 text-[11px] text-blue-600">
-            Hiển thị cho khách
-          </div>
+          <div className="mt-0.5 text-[11px] text-blue-600">Hiển thị cho khách</div>
         </div>
 
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 shadow-sm">
-          <div className="text-xs font-semibold text-emerald-700">
-            Tổng máy tồn kho
+          <div className="flex items-center justify-between text-emerald-700">
+            <span className="text-xs font-semibold">Tổng máy kho</span>
+            <Warehouse className="h-4 w-4 text-emerald-600" />
           </div>
-          <div className="mt-1 text-2xl font-extrabold text-emerald-800">
+          <div className="mt-1.5 text-2xl font-black text-emerald-800">
             {summary.tongmaytonkho}
           </div>
-          <div className="mt-0.5 text-[11px] text-emerald-600">
-            Bảng TON_KHO
-          </div>
+          <div className="mt-0.5 text-[11px] text-emerald-600">Bảng TON_KHO</div>
         </div>
 
         <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 shadow-sm">
-          <div className="text-xs font-semibold text-amber-800">
-            Sắp hết hàng (≤ 5)
+          <div className="flex items-center justify-between text-amber-800">
+            <span className="text-xs font-semibold">Sắp hết (≤ 5)</span>
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
           </div>
-          <div className="mt-1 text-2xl font-extrabold text-amber-900">
+          <div className="mt-1.5 text-2xl font-black text-amber-900">
             {summary.saphethang}
           </div>
-          <div className="mt-0.5 text-[11px] text-amber-700">
-            Cần nhập bổ sung
-          </div>
+          <div className="mt-0.5 text-[11px] text-amber-700">Cần nhập thêm</div>
         </div>
 
         <div className="rounded-2xl border border-orange-200 bg-orange-50/50 p-4 shadow-sm">
-          <div className="text-xs font-semibold text-orange-800">
-            Tạm hết hàng (0)
+          <div className="flex items-center justify-between text-orange-800">
+            <span className="text-xs font-semibold">Tạm hết (0)</span>
+            <XCircle className="h-4 w-4 text-orange-600" />
           </div>
-          <div className="mt-1 text-2xl font-extrabold text-orange-900">
+          <div className="mt-1.5 text-2xl font-black text-orange-900">
             {summary.hethang}
           </div>
-          <div className="mt-0.5 text-[11px] text-orange-700">
-            HET_HANG
-          </div>
+          <div className="mt-0.5 text-[11px] text-orange-700">Hết hàng</div>
         </div>
 
-        <div className="rounded-2xl border border-red-200 bg-red-50/50 p-4 shadow-sm">
-          <div className="text-xs font-semibold text-red-700">
-            Đã ẩn / Ngừng bán
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-rose-700">
+            <span className="text-xs font-semibold">Đã ẩn / Dừng</span>
+            <EyeOff className="h-4 w-4 text-rose-600" />
           </div>
-          <div className="mt-1 text-2xl font-extrabold text-red-800">
+          <div className="mt-1.5 text-2xl font-black text-rose-800">
             {summary.ngungkinhdoanh}
           </div>
-          <div className="mt-0.5 text-[11px] text-red-600">
-            Soft Delete
-          </div>
+          <div className="mt-0.5 text-[11px] text-rose-600">Soft Delete</div>
         </div>
       </div>
 

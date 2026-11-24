@@ -61,6 +61,7 @@ export interface CreateProductPayload {
   mausac: string;
   giaban: number;
   soluong: number;
+  soluongDelta?: number;
   sku?: string;
   mota?: string;
   hinhanh?: string;
@@ -70,6 +71,7 @@ export interface CreateProductPayload {
 export interface UpdateStockPricePayload {
   giaban?: number;
   soluong?: number;
+  soluongDelta?: number;
   hinhanh?: string;
 }
 
@@ -849,7 +851,11 @@ export const productsApi = {
       const nextPrice =
         payload.giaban !== undefined ? Number(payload.giaban) : cur.giaban;
       const nextStock =
-        payload.soluong !== undefined ? Number(payload.soluong) : cur.soluongton;
+        payload.soluong !== undefined
+          ? Number(payload.soluong)
+          : payload.soluongDelta !== undefined
+            ? Math.max(0, cur.soluongton + Number(payload.soluongDelta))
+            : cur.soluongton;
 
       if (nextPrice <= 0) {
         throw new Error('Giá bán (giaban) phải lớn hơn 0 (Ràng buộc CHECK)');

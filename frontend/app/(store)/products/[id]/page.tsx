@@ -15,6 +15,7 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import ProductCard from '../../../../components/store/ProductCard';
 import StoreToast, { ToastMessage } from '../../../../components/store/StoreToast';
+import { useLanguage } from '../../../../contexts/LanguageContext';
 import { authApi, openCustomerAuthModal } from '../../../../services/auth.api';
 import { ProductItem, productsApi } from '../../../../services/products.api';
 import { useCartStore } from '../../../../stores/cart.store';
@@ -41,6 +42,7 @@ const COLOR_MAP: Record<string, string> = {
 };
 
 export default function ProductDetailPage() {
+  const { t, lang } = useLanguage();
   const params = useParams();
   const router = useRouter();
   const productId = Number(params.id);
@@ -76,7 +78,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     async function fetchDetail() {
       if (!productId || isNaN(productId)) {
-        setError('Mã sản phẩm không hợp lệ');
+        setError(lang === 'VI' ? 'Mã sản phẩm không hợp lệ' : 'Invalid product ID');
         setLoading(false);
         return;
       }
@@ -103,22 +105,21 @@ export default function ProductDetailPage() {
           .slice(0, 4);
         setRelatedProducts(related);
       } catch (err: any) {
-        setError(err?.message || 'Không thể tải thông tin sản phẩm');
+        setError(err.message || (lang === 'VI' ? 'Không thể tải thông tin sản phẩm' : 'Failed to load product'));
       } finally {
         setLoading(false);
       }
     }
 
     fetchDetail();
-    setQuantity(1);
-  }, [productId]);
+  }, [productId, lang]);
 
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-sky-600 border-t-transparent" />
-        <div className="text-xs text-slate-500 font-semibold mt-3">
-          Đang tải chi tiết phiên bản iPhone...
+        <div className="inline-block h-9 w-9 animate-spin rounded-full border-4 border-sky-600 border-t-transparent" />
+        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-3">
+          {lang === 'VI' ? 'Đang tải chi tiết phiên bản iPhone...' : 'Loading iPhone details...'}
         </div>
       </div>
     );
@@ -127,17 +128,17 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return (
       <div className="mx-auto max-w-xl px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">
-          Không tìm thấy thông tin sản phẩm
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+          {lang === 'VI' ? 'Không tìm thấy thông tin sản phẩm' : 'Product Not Found'}
         </h2>
-        <p className="text-xs text-slate-500">
-          {error || 'Sản phẩm này không tồn tại hoặc đã ngừng kinh doanh (Soft Delete).'}
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          {error || (lang === 'VI' ? 'Sản phẩm này không tồn tại hoặc đã ngừng kinh doanh.' : 'This product does not exist or has been discontinued.')}
         </p>
         <Link
           href="/products"
-          className="inline-block rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800"
+          className="inline-block rounded-xl bg-slate-900 dark:bg-sky-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-sky-500"
         >
-          ➔ Quay lại Danh sách Sản phẩm
+          ➔ {lang === 'VI' ? 'Quay lại Danh sách Sản phẩm' : 'Back to Product Catalog'}
         </Link>
       </div>
     );
@@ -151,7 +152,9 @@ export default function ProductDetailPage() {
     if (next < 1) return;
     if (next > product.soluongton) {
       addToast(
-        `Số lượng yêu cầu vượt quá tồn kho hiện tại (chỉ còn ${product.soluongton} máy)`,
+        lang === 'VI'
+          ? `Số lượng yêu cầu vượt quá tồn kho hiện tại (chỉ còn ${product.soluongton} máy)`
+          : `Requested quantity exceeds available stock (only ${product.soluongton} left)`,
         false,
       );
       return;
@@ -165,8 +168,17 @@ export default function ProductDetailPage() {
 
     const curCustomer = authApi.getCurrentCustomer();
     if (!curCustomer) {
-      addToast('Vui lòng đăng nhập tài khoản Khách Hàng để thêm vào giỏ hàng!', false);
-      openCustomerAuthModal('Vui lòng đăng nhập tài khoản để thêm sản phẩm vào giỏ hàng!');
+      addToast(
+        lang === 'VI'
+          ? 'Vui lòng đăng nhập tài khoản Khách Hàng để thêm vào giỏ hàng!'
+          : 'Please sign in to your customer account to add items to cart!',
+        false,
+      );
+      openCustomerAuthModal(
+        lang === 'VI'
+          ? 'Vui lòng đăng nhập tài khoản để thêm sản phẩm vào giỏ hàng!'
+          : 'Please sign in to add products to your cart!',
+      );
       return;
     }
 
@@ -180,8 +192,17 @@ export default function ProductDetailPage() {
 
     const curCustomer = authApi.getCurrentCustomer();
     if (!curCustomer) {
-      addToast('Vui lòng đăng nhập tài khoản Khách Hàng để tiến hành mua hàng!', false);
-      openCustomerAuthModal('Vui lòng đăng nhập tài khoản để tiến hành mua hàng!');
+      addToast(
+        lang === 'VI'
+          ? 'Vui lòng đăng nhập tài khoản Khách Hàng để tiến hành mua hàng!'
+          : 'Please sign in to your customer account to proceed with purchase!',
+        false,
+      );
+      openCustomerAuthModal(
+        lang === 'VI'
+          ? 'Vui lòng đăng nhập tài khoản để tiến hành mua hàng!'
+          : 'Please sign in to proceed with purchase!',
+      );
       return;
     }
 
@@ -201,7 +222,6 @@ export default function ProductDetailPage() {
     (img, idx, arr) => img && arr.indexOf(img) === idx,
   );
 
-  // Đảm bảo có góc nhìn phụ nếu danh sách chỉ có 1 ảnh
   if (galleryImages.length === 1) {
     if (product.tensanpham.includes('Pro')) {
       galleryImages.push('/images/products/gallery/iphone-16-pro-angle.png');
@@ -220,11 +240,21 @@ export default function ProductDetailPage() {
   const availableStorages = Array.from(new Set(directSiblings.map((p) => p.dungluong)));
 
   const handleSelectStorage = (st: string) => {
-    const matched = directSiblings.find((p) => p.dungluong === st);
+    const matched = directSiblings.find((p) => p.dungluong === st && p.mausac === product.mausac);
     if (matched) {
       router.push(`/products/${matched.masanpham}`);
     } else {
-      addToast(`Phiên bản dung lượng ${st} của dòng này hiện đang cập nhật kho!`, false);
+      const anyWithStorage = directSiblings.find((p) => p.dungluong === st);
+      if (anyWithStorage) {
+        router.push(`/products/${anyWithStorage.masanpham}`);
+      } else {
+        addToast(
+          lang === 'VI'
+            ? `Phiên bản dung lượng ${st} tạm thời chưa sẵn sàng!`
+            : `Storage capacity ${st} is temporarily unavailable!`,
+          false,
+        );
+      }
     }
   };
 
@@ -233,52 +263,57 @@ export default function ProductDetailPage() {
     if (matched) {
       router.push(`/products/${matched.masanpham}`);
     } else {
-      addToast(`Màu sắc ${col} tạm thời chưa sẵn sàng!`, false);
+      addToast(
+        lang === 'VI'
+          ? `Màu sắc ${col} tạm thời chưa sẵn sàng!`
+          : `Color ${col} is temporarily unavailable!`,
+        false,
+      );
     }
   };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-10">
       {/* Breadcrumb */}
-      <nav className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
-        <Link href="/" className="hover:text-sky-600 transition-colors">
-          Trang chủ
+      <nav className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap">
+        <Link href="/" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+          {t('home')}
         </Link>
         <span>/</span>
-        <Link href="/products" className="hover:text-sky-600 transition-colors">
-          Sản phẩm
+        <Link href="/products" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+          {t('products')}
         </Link>
         <span>/</span>
         <Link
           href={`/products?madanhmuc=${product.madanhmuc}`}
-          className="hover:text-sky-600 transition-colors"
+          className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
         >
-          {product.DANH_MUC?.tendanhmuc || 'Dòng iPhone'}
+          {product.DANH_MUC?.tendanhmuc || 'iPhone Series'}
         </Link>
         <span>/</span>
-        <span className="font-bold text-slate-900 truncate max-w-xs">
+        <span className="font-bold text-slate-900 dark:text-slate-100 truncate max-w-xs">
           {product.tensanpham} ({product.dungluong} - {product.mausac})
         </span>
       </nav>
 
       {/* Thông tin Chi Tiết Sản Phẩm */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* CỘT TRÁI: GALLERY HÌNH ẢNH STUDIO TRONG SUỐT (lg:col-span-5) */}
+        {/* CỘT TRÁI: GALLERY HÌNH ẢNH TRONG SUỐT (lg:col-span-5) */}
         <div className="lg:col-span-5 space-y-4">
           {/* Ảnh Lớn Chính */}
-          <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-slate-50/70 p-8 shadow-sm flex items-center justify-center border border-slate-200/80 transition-all">
+          <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-slate-50/80 dark:bg-slate-900 p-8 shadow-sm flex items-center justify-center border border-slate-200/80 dark:border-slate-800 transition-all">
             {selectedImage ? (
               <img
                 src={selectedImage}
                 alt={product.tensanpham}
-                className="max-h-full max-w-full object-contain filter drop-shadow-md transition-all duration-300"
+                className="max-h-full max-w-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_16px_32px_rgba(0,0,0,0.6)] transition-all duration-300"
               />
             ) : (
-              <div className="text-xs text-slate-400">Chưa có ảnh</div>
+              <div className="text-xs text-slate-400">iPhone</div>
             )}
 
             {/* Badges */}
-            <span className="absolute top-4 left-4 rounded-xl bg-slate-900/90 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow">
+            <span className="absolute top-4 left-4 rounded-xl bg-slate-900/90 dark:bg-slate-800 backdrop-blur px-3 py-1 text-xs font-bold text-white shadow">
               {product.dungluong}
             </span>
 
@@ -292,18 +327,20 @@ export default function ProductDetailPage() {
               }`}
             >
               {isOutOfStock
-                ? 'Tạm hết hàng'
+                ? t('out_of_stock')
                 : isLowStock
-                  ? `Sắp hết (Còn ${product.soluongton})`
-                  : `Sẵn hàng (${product.soluongton} máy)`}
+                  ? `${t('only_left')} ${product.soluongton} ${t('units_left')}`
+                  : `${t('in_stock')} (${product.soluongton} ${t('units_left')})`}
             </span>
           </div>
 
           {/* GALLERY THUMBNAILS (BẤM ĐỔI ẢNH PREVIEW) */}
           <div className="space-y-1.5">
-            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
-              <span>Hình ảnh chi tiết ({galleryImages.length} góc nhìn)</span>
-              <span className="text-[10px] text-sky-600 font-semibold">Click để đổi ảnh preview</span>
+            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>{lang === 'VI' ? `Hình ảnh chi tiết (${galleryImages.length} góc nhìn)` : `Product views (${galleryImages.length} angles)`}</span>
+              <span className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">
+                {lang === 'VI' ? 'Click để đổi ảnh preview' : 'Click to preview'}
+              </span>
             </div>
 
             <div className="flex items-center gap-3 overflow-x-auto pb-1">
@@ -314,12 +351,12 @@ export default function ProductDetailPage() {
                     key={i}
                     type="button"
                     onClick={() => setSelectedImage(imgUrl)}
-                    className={`relative h-20 w-20 shrink-0 rounded-2xl bg-slate-50 p-2 border transition-all flex items-center justify-center overflow-hidden ${
+                    className={`relative h-20 w-20 shrink-0 rounded-2xl p-2 border transition-all flex items-center justify-center overflow-hidden ${
                       isActive
-                        ? 'border-sky-600 ring-2 ring-sky-500/40 bg-white shadow-md'
-                        : 'border-slate-200 hover:border-slate-400 bg-slate-50/80'
+                        ? 'border-sky-600 ring-2 ring-sky-500/40 bg-white dark:bg-slate-800 shadow-md'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-400 bg-slate-50 dark:bg-slate-900'
                     }`}
-                    title={`Xem góc nhìn ${i + 1}`}
+                    title={`View angle ${i + 1}`}
                   >
                     <img
                       src={imgUrl}
@@ -336,13 +373,13 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Khối cam kết Apple Care */}
-          <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 space-y-2 text-xs text-sky-950">
-            <div className="font-bold flex items-center gap-2 text-sm text-sky-900">
-              <ShieldCheck className="h-5 w-5 text-sky-600" />
-              <span>Bảo Hành Apple Chính Hãng 12 Tháng</span>
+          <div className="rounded-2xl border border-sky-200 dark:border-sky-900 bg-sky-50/70 dark:bg-sky-950/40 p-4 space-y-2 text-xs text-sky-950 dark:text-sky-200">
+            <div className="font-bold flex items-center gap-2 text-sm text-sky-900 dark:text-sky-300">
+              <ShieldCheck className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+              <span>{t('warranty_title')}</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-sky-800">
-              Sản phẩm phiên bản VN/A chính hãng, được bảo hành 12 tháng tại các trung tâm Apple Care ủy quyền trên toàn quốc. 1 đổi 1 trong 30 ngày nếu lỗi phần cứng.
+            <p className="text-[11px] leading-relaxed text-sky-800 dark:text-sky-300">
+              {t('warranty_desc')}
             </p>
           </div>
         </div>
@@ -350,50 +387,56 @@ export default function ProductDetailPage() {
         {/* CỘT PHẢI: THÔNG SỐ, OPTIONS DUNG LƯỢNG & MÀU SẮC ĐA DẠNG (lg:col-span-7) */}
         <div className="lg:col-span-7 space-y-6">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-sky-600 mb-1">
+            <div className="flex items-center gap-2 text-xs font-bold text-sky-600 dark:text-sky-400 mb-1">
               <span>{product.DANH_MUC?.tendanhmuc}</span>
               <span>•</span>
               <span>Mã SKU: {product.sku}</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
               {product.tensanpham}
             </h1>
 
-            <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+            <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
               <div className="flex items-center text-amber-500 font-bold gap-1">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                <span className="text-slate-800">5.0</span>
-                <span className="text-slate-400">(Đánh giá tốt)</span>
+                <span className="text-slate-800 dark:text-slate-200">5.0</span>
+                <span className="text-slate-400 dark:text-slate-500">
+                  {lang === 'VI' ? '(Đánh giá tốt)' : '(Highly rated)'}
+                </span>
               </div>
               <span>•</span>
-              <span className="font-semibold text-emerald-600">
-                Kho: {product.soluongton} máy có sẵn
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                {t('stock_label')}: {product.soluongton} {t('units_left')} {lang === 'VI' ? 'có sẵn' : 'available'}
               </span>
             </div>
           </div>
 
           {/* Khung Giá Bán */}
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm space-y-1">
-            <div className="text-xs text-slate-500 font-semibold">Giá bán niêm yết (Đã gồm VAT)</div>
-            <div className="text-3xl font-black text-rose-600 tracking-tight">
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-5 shadow-sm space-y-1">
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+              {lang === 'VI' ? 'Giá bán niêm yết (Đã gồm VAT)' : 'Official Retail Price (VAT Incl.)'}
+            </div>
+            <div className="text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
               {product.giaban.toLocaleString('vi-VN')} ₫
             </div>
-            <div className="text-xs text-slate-500 flex items-center gap-2 pt-1 flex-wrap">
-              <span className="rounded bg-emerald-100 text-emerald-800 px-2 py-0.5 font-bold text-[10px]">
-                Miễn phí vận chuyển
+            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-1 flex-wrap">
+              <span className="rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 font-bold text-[10px]">
+                {lang === 'VI' ? 'Miễn phí vận chuyển' : 'Free Shipping'}
               </span>
-              <span>Trả góp 0% qua thẻ tín dụng</span>
+              <span>{lang === 'VI' ? 'Trả góp 0% qua thẻ tín dụng' : '0% Installment'}</span>
               <span>•</span>
-              <span>Thu cũ đổi mới trợ giá 2 Triệu</span>
+              <span>{t('trade_in_badge')}</span>
             </div>
           </div>
 
           {/* 1. ĐA DẠNG LỰA CHỌN DUNG LƯỢNG (BỘ NHỚ) */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center justify-between">
-              <span>1. Chọn Dung Lượng Bộ Nhớ</span>
-              <span className="text-[11px] font-normal text-slate-400">Đang chọn: {product.dungluong}</span>
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+              <span>{t('select_storage_title')}</span>
+              <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
+                {t('selected_storage_label')}: {product.dungluong}
+              </span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {STANDARD_STORAGES.map((st) => {
@@ -406,15 +449,15 @@ export default function ProductDetailPage() {
                     onClick={() => handleSelectStorage(st)}
                     className={`rounded-2xl p-3 text-xs font-bold transition-all border text-center relative ${
                       isCurrent
-                        ? 'border-slate-900 bg-slate-900 text-white shadow-md'
+                        ? 'border-slate-900 dark:border-sky-500 bg-slate-900 dark:bg-sky-600 text-white shadow-md'
                         : hasVariant
-                          ? 'border-slate-300 bg-white text-slate-800 hover:border-slate-500 hover:bg-slate-50'
-                          : 'border-slate-200 bg-slate-100/60 text-slate-400 hover:border-slate-300'
+                          ? 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 hover:border-slate-300'
                     }`}
                   >
                     <div className="text-sm font-extrabold">{st}</div>
                     <div className="text-[10px] mt-0.5 font-normal opacity-80">
-                      {isCurrent ? 'Đang chọn' : hasVariant ? 'Có sẵn' : 'Tạm hết'}
+                      {isCurrent ? t('selected_storage_label') : hasVariant ? t('available_storage') : t('out_storage')}
                     </div>
                   </button>
                 );
@@ -424,12 +467,16 @@ export default function ProductDetailPage() {
 
           {/* 2. ĐA DẠNG LỰA CHỌN MÀU SẮC */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2.5 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Palette className="h-3.5 w-3.5 text-sky-600" />
-                <span>2. Chọn Màu Sắc: <strong className="text-slate-900">{product.mausac}</strong></span>
+                <Palette className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+                <span>
+                  {t('select_color_title')}: <strong className="text-slate-900 dark:text-slate-100">{product.mausac}</strong>
+                </span>
               </div>
-              <span className="text-[11px] font-normal text-slate-400">{availableColors.length} màu</span>
+              <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
+                {availableColors.length} {t('colors_count')}
+              </span>
             </label>
             <div className="flex flex-wrap gap-2.5">
               {availableColors.map((col) => {
@@ -442,8 +489,8 @@ export default function ProductDetailPage() {
                     onClick={() => handleSelectColor(col)}
                     className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition-all border ${
                       isCurrent
-                        ? 'border-sky-600 bg-sky-50/80 text-sky-800 ring-2 ring-sky-500/30 shadow-sm'
-                        : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                        ? 'border-sky-600 dark:border-sky-400 bg-sky-50/80 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 ring-2 ring-sky-500/30 shadow-sm'
+                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     <span
@@ -451,7 +498,7 @@ export default function ProductDetailPage() {
                       style={{ backgroundColor: hexColor }}
                     />
                     <span>{col}</span>
-                    {isCurrent && <Check className="h-3 w-3 text-sky-600 ml-0.5" />}
+                    {isCurrent && <Check className="h-3 w-3 text-sky-600 dark:text-sky-400 ml-0.5" />}
                   </button>
                 );
               })}
@@ -460,39 +507,39 @@ export default function ProductDetailPage() {
 
           {/* 3. BỘ CHỌN SỐ LƯỢNG (CHẶN VƯỢT TỒN KHO) */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-              3. Số Lượng Mua (Tối đa {product.soluongton} máy)
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+              {t('purchase_quantity')} ({t('max_stock_label')} {product.soluongton} {t('units_left')})
             </label>
             <div className="flex items-center gap-3">
-              <div className="flex items-center rounded-2xl border border-slate-300 bg-white p-1 shadow-sm">
+              <div className="flex items-center rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-sm">
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(-1)}
                   disabled={quantity <= 1 || isOutOfStock}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:opacity-40 transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-40 transition-colors"
                 >
                   −
                 </button>
-                <span className="w-12 text-center text-sm font-black text-slate-900">
+                <span className="w-12 text-center text-sm font-black text-slate-900 dark:text-slate-100">
                   {quantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(1)}
                   disabled={quantity >= product.soluongton || isOutOfStock}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-200 disabled:opacity-40 transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-40 transition-colors"
                 >
                   +
                 </button>
               </div>
 
-              <div className="text-xs text-slate-500">
-                Thành tiền: <strong className="text-rose-600 text-sm font-black">{(product.giaban * quantity).toLocaleString('vi-VN')} ₫</strong>
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                {t('subtotal_label')}: <strong className="text-rose-600 dark:text-rose-400 text-sm font-black">{(product.giaban * quantity).toLocaleString('vi-VN')} ₫</strong>
               </div>
             </div>
           </div>
 
-          {/* 4. NÚT MUA HÀNG & THÊM GIỎ (KHÔNG DÙNG TỪ CHECKOUT) */}
+          {/* 4. NÚT MUA HÀNG & THÊM GIỎ */}
           <div className="pt-2 flex flex-col sm:flex-row gap-3">
             <button
               type="button"
@@ -500,12 +547,12 @@ export default function ProductDetailPage() {
               disabled={isOutOfStock}
               className={`flex-1 rounded-2xl py-3.5 px-6 text-xs font-bold transition-all flex items-center justify-center gap-2 border ${
                 isOutOfStock
-                  ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                  : 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200'
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <ShoppingBag className="h-4 w-4" />
-              <span>Thêm Vào Giỏ Hàng</span>
+              <span>{t('add_cart_btn')}</span>
             </button>
 
             <button
@@ -514,22 +561,22 @@ export default function ProductDetailPage() {
               disabled={isOutOfStock}
               className={`flex-1 rounded-2xl py-3.5 px-6 text-xs font-extrabold text-white transition-all shadow-lg flex items-center justify-center gap-2 ${
                 isOutOfStock
-                  ? 'bg-slate-300 cursor-not-allowed'
+                  ? 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
                   : 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30'
               }`}
             >
               <Zap className="h-4 w-4" />
-              <span>{isOutOfStock ? 'Tạm Hết Hàng' : 'Mua Ngay'}</span>
+              <span>{isOutOfStock ? t('out_of_stock') : t('buy_now_btn')}</span>
             </button>
           </div>
 
           {/* Mô tả chi tiết */}
           {product.mota && (
-            <div className="pt-4 border-t border-slate-200">
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-                Mô tả sản phẩm
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+              <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+                {lang === 'VI' ? 'Mô tả sản phẩm' : 'Product Description'}
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 {product.mota}
               </p>
             </div>
@@ -538,49 +585,51 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Bảng Thông Số Kỹ Thuật Chi Tiết */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-        <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-          <Settings className="h-5 w-5 text-sky-600" />
-          <span>Thông Số Kỹ Thuật Chi Tiết</span>
+      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-4">
+        <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
+          <Settings className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+          <span>{t('specs_title')}</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-4 space-y-2">
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Mã SKU:</span>
-              <span className="font-bold text-slate-800">{product.sku}</span>
+              <span className="text-slate-500 dark:text-slate-400">SKU:</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{product.sku}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Dòng sản phẩm:</span>
-              <span className="font-bold text-slate-800">{product.DANH_MUC?.tendanhmuc}</span>
+              <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Dòng sản phẩm:' : 'Series:'}</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{product.DANH_MUC?.tendanhmuc}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Dung lượng bộ nhớ:</span>
-              <span className="font-bold text-slate-800">{product.dungluong}</span>
+              <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Dung lượng:' : 'Capacity:'}</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{product.dungluong}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Màu sắc phiên bản:</span>
-              <span className="font-bold text-slate-800">{product.mausac}</span>
+              <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Màu sắc:' : 'Color:'}</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{product.mausac}</span>
             </div>
           </div>
 
-          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-4 space-y-2">
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Tình trạng máy:</span>
-              <span className="font-bold text-emerald-600">Mới 100% Nguyên Hộp (VN/A)</span>
+              <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Tình trạng máy:' : 'Condition:'}</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                {lang === 'VI' ? 'Mới 100% Nguyên Hộp (VN/A)' : 'Brand New 100% Sealed (VN/A)'}
+              </span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Số lượng trong kho:</span>
-              <span className="font-bold text-slate-800">{product.soluongton} máy</span>
+              <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Số lượng tồn kho:' : 'Stock Available:'}</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{product.soluongton} {t('units_left')}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Thời gian bảo hành:</span>
-              <span className="font-bold text-slate-800">12 Tháng Apple Care Chính Hãng</span>
+              <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Bảo hành:' : 'Warranty:'}</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{t('apple_care_12m')}</span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-slate-500">Trạng thái kinh doanh:</span>
-              <span className="font-bold text-sky-600">
-                {product.trangthai === 'DANG_BAN' ? 'Đang kinh doanh' : product.trangthai}
+              <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Trạng thái kinh doanh:' : 'Status:'}</span>
+              <span className="font-bold text-sky-600 dark:text-sky-400">
+                {product.trangthai === 'DANG_BAN' ? (lang === 'VI' ? 'Đang kinh doanh' : 'Active') : product.trangthai}
               </span>
             </div>
           </div>
@@ -589,16 +638,16 @@ export default function ProductDetailPage() {
 
       {/* Sản phẩm gợi ý liên quan */}
       {relatedProducts.length > 0 && (
-        <div className="space-y-4 pt-6 border-t border-slate-200">
+        <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">
-              Sản Phẩm Cùng Dòng Máy
+            <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              {t('related_title')}
             </h3>
             <Link
               href={`/products?madanhmuc=${product.madanhmuc}`}
-              className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1"
+              className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-1"
             >
-              <span>Xem tất cả ({siblingProducts.length})</span>
+              <span>{lang === 'VI' ? `Xem tất cả (${siblingProducts.length})` : `View all (${siblingProducts.length})`}</span>
               <ArrowRight className="h-3 w-3" />
             </Link>
           </div>

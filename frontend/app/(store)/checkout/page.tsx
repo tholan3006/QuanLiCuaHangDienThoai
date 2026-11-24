@@ -5,8 +5,6 @@ import {
   ArrowRight,
   CheckCircle2,
   CreditCard,
-  Lock,
-  MapPin,
   QrCode,
   ShieldCheck,
   UserCheck,
@@ -16,12 +14,14 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import AuthModal from '../../../components/store/AuthModal';
 import StoreToast, { ToastMessage } from '../../../components/store/StoreToast';
-import { authApi, CustomerProfile, DEMO_CUSTOMERS } from '../../../services/auth.api';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { authApi, CustomerProfile, DEMO_USERS } from '../../../services/auth.api';
 import { ordersApi } from '../../../services/orders.api';
 import { productsApi } from '../../../services/products.api';
 import { CartSyncWarning, useCartStore } from '../../../stores/cart.store';
 
 export default function StoreCheckoutPage() {
+  const { t, lang } = useLanguage();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
@@ -91,7 +91,9 @@ export default function StoreCheckoutPage() {
 
         if (warnings.length > 0) {
           addToast(
-            'Hệ thống vừa đối chiếu giá và tồn kho mới nhất từ CSDL. Vui lòng xem thông báo cập nhật bên dưới!',
+            lang === 'VI'
+              ? 'Hệ thống vừa đối chiếu giá và tồn kho mới nhất từ CSDL. Vui lòng xem thông báo cập nhật bên dưới!'
+              : 'Inventory & prices updated from server. Please review notifications below!',
             false,
           );
         }
@@ -102,63 +104,66 @@ export default function StoreCheckoutPage() {
       }
     }
 
-    if (mounted) {
-      verifyWithApi();
-    }
-  }, [mounted, syncWithLatestProducts]);
+    verifyWithApi();
+  }, []);
 
-  // Cập nhật form khi đăng nhập thành công
-  const handleAuthSuccess = (c: CustomerProfile) => {
-    setCustomer(c);
-    setHoten(c.hoten || '');
-    setSdt(c.sdt || '');
-    setDiachi(c.diachi || '');
-    addToast(`Đăng nhập thành công! Xin chào ${c.hoten}.`, true);
+  const handleAuthSuccess = (loggedUser: CustomerProfile) => {
+    setCustomer(loggedUser);
+    setHoten(loggedUser.hoten || '');
+    setSdt(loggedUser.sdt || '');
+    setDiachi(loggedUser.diachi || '');
+    setIsAuthModalOpen(false);
+    addToast(
+      lang === 'VI'
+        ? `Xin chào ${loggedUser.hoten}! Đã đồng bộ thông tin nhận hàng.`
+        : `Welcome ${loggedUser.hoten}! Shipping details synced.`,
+      true,
+    );
   };
 
-  // Xóa sản phẩm bị ngừng bán hoặc hết hàng
   const handleRemoveInvalidItem = (masanpham: number) => {
     removeFromCart(masanpham);
     setSyncWarnings((prev) => prev.filter((w) => w.masanpham !== masanpham));
-    addToast('Đã gỡ sản phẩm không hợp lệ khỏi giỏ hàng.', true);
+    addToast(lang === 'VI' ? 'Đã gỡ sản phẩm không hợp lệ khỏi giỏ hàng.' : 'Removed invalid product from cart.', true);
   };
 
-  // Xử lý Gửi Đơn Đặt Hàng
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Bắt buộc đăng nhập
+    // RÀNG BUỘC 1: Bắt buộc đăng nhập
     if (!customer) {
+      addToast(lang === 'VI' ? 'Vui lòng đăng nhập tài khoản trước khi gửi yêu cầu đặt hàng!' : 'Please sign in before submitting your order!', false);
       setIsAuthModalOpen(true);
-      addToast('Vui lòng đăng nhập tài khoản trước khi gửi yêu cầu đặt hàng!', false);
       return;
     }
 
-    // 2. Kiểm tra giỏ hàng
+    // RÀNG BUỘC 2: Kiểm tra giỏ hàng
     if (items.length === 0) {
-      addToast('Giỏ hàng đang trống, không thể đặt hàng.', false);
+      addToast(lang === 'VI' ? 'Giỏ hàng của bạn đang trống!' : 'Your cart is empty!', false);
       return;
     }
 
-    // 3. Kiểm tra sản phẩm ngừng kinh doanh hoặc hết hàng
-    const invalidItems = items.filter((i) => i.discontinued || i.outOfStock || i.soluongton === 0);
-    if (invalidItems.length > 0) {
-      addToast(
-        'Trong giỏ có sản phẩm đã ngừng kinh doanh hoặc hết hàng. Vui lòng xóa trước khi đặt hàng!',
-        false,
-      );
+    // RÀNG BUỘC 3: Chặn nếu có sản phẩm ngừng kinh doanh hoặc hết hàng
+    const hasDiscontinued = items.some((i) => i.discontinued);
+    if (hasDiscontinued) {
+      addToast(lang === 'VI' ? 'Giỏ hàng chứa sản phẩm đã ngừng kinh doanh. Vui lòng xóa trước khi đặt hàng!' : 'Cart contains discontinued items. Please remove them before ordering!', false);
       return;
     }
 
-    // 4. Kiểm tra thông tin nhận hàng
+    const hasOutOfStock = items.some((i) => i.outOfStock || i.soluongton === 0);
+    if (hasOutOfStock) {
+      addToast(lang === 'VI' ? 'Giỏ hàng chứa sản phẩm đã hết hàng trong kho. Vui lòng gỡ bỏ trước khi tiếp tục!' : 'Cart contains out-of-stock items. Please remove them before proceeding!', false);
+      return;
+    }
+
+    // RÀNG BUỘC 4: Kiểm tra thông tin người nhận
     if (!hoten.trim() || !sdt.trim() || !diachi.trim()) {
-      addToast('Vui lòng nhập đầy đủ Họ tên, Số điện thoại và Địa chỉ giao hàng.', false);
+      addToast(lang === 'VI' ? 'Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ nhận hàng!' : 'Please fill in full name, phone number, and delivery address!', false);
       return;
     }
 
     setSubmitting(true);
     try {
-      // Gửi yêu cầu đặt hàng tới API Backend TV4 (POST /orders)
       const res = await ordersApi.create({
         items: items.map((i) => ({
           masanpham: i.masanpham,
@@ -171,18 +176,11 @@ export default function StoreCheckoutPage() {
         ghichu: ghichu.trim() || undefined,
       });
 
-      // Lưu thông tin người nhận vào profile khách hàng
-      authApi.updateProfile({
-        hoten: hoten.trim(),
-        sdt: sdt.trim(),
-        diachi: diachi.trim(),
-      });
-
       // Đặt hàng thành công
       setOrderSuccess(res.data);
       clearCart();
     } catch (err: any) {
-      addToast(err?.message || 'Đặt hàng thất bại. Vui lòng kiểm tra lại tồn kho!', false);
+      addToast(err?.message || (lang === 'VI' ? 'Đặt hàng thất bại. Vui lòng kiểm tra lại tồn kho!' : 'Order failed. Please check stock!'), false);
     } finally {
       setSubmitting(false);
     }
@@ -190,8 +188,8 @@ export default function StoreCheckoutPage() {
 
   if (!mounted) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-16 text-center text-xs text-slate-500">
-        Đang nạp dữ liệu thanh toán...
+      <div className="mx-auto max-w-7xl px-4 py-16 text-center text-xs text-slate-500 dark:text-slate-400">
+        {lang === 'VI' ? 'Đang nạp dữ liệu thanh toán...' : 'Loading order details...'}
       </div>
     );
   }
@@ -202,53 +200,55 @@ export default function StoreCheckoutPage() {
   if (orderSuccess) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xl space-y-6 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mx-auto">
-            <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-10 shadow-xl space-y-6 text-center transition-colors">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto">
+            <CheckCircle2 className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
           </div>
 
           <div>
-            <span className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 mb-2">
-              Đặt Hàng Thành Công
+            <span className="inline-block rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 mb-2">
+              {lang === 'VI' ? 'Đặt Hàng Thành Công' : 'Order Placed Successfully'}
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Cảm Ơn Quý Khách Đã Đặt Hàng!
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              {t('order_success_title')}
             </h1>
-            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-              Đơn hàng của bạn đã được tiếp nhận và ghi nhận ở trạng thái{' '}
-              <strong className="text-amber-700 font-bold">Chờ xác nhận (CHO_XAC_NHAN)</strong>.
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+              {t('order_success_sub')}{' '}
+              <strong className="text-amber-700 dark:text-amber-400 font-bold">
+                {lang === 'VI' ? 'Chờ xác nhận (CHO_XAC_NHAN)' : 'Pending Confirmation (CHO_XAC_NHAN)'}
+              </strong>.
             </p>
           </div>
 
           {/* Chi tiết tóm tắt đơn vừa đặt */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-left space-y-3 text-xs">
-            <div className="flex justify-between pb-2 border-b border-slate-200 font-bold">
-              <span className="text-slate-600">Mã đơn hàng:</span>
-              <span className="text-sky-600 text-sm font-black">#{orderSuccess.madonhang}</span>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-5 text-left space-y-3 text-xs">
+            <div className="flex justify-between pb-2 border-b border-slate-200 dark:border-slate-700 font-bold">
+              <span className="text-slate-600 dark:text-slate-400">{t('order_code_label')}:</span>
+              <span className="text-sky-600 dark:text-sky-400 text-sm font-black">#{orderSuccess.madonhang}</span>
             </div>
 
             <div className="flex justify-between">
-              <span className="text-slate-600">Người nhận hàng:</span>
-              <span className="font-bold text-slate-900">{hoten} - {sdt}</span>
+              <span className="text-slate-600 dark:text-slate-400">{t('recipient_label')}:</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{hoten} - {sdt}</span>
             </div>
 
             <div className="flex justify-between">
-              <span className="text-slate-600">Địa chỉ giao:</span>
-              <span className="font-bold text-slate-900 text-right max-w-xs">{diachi}</span>
+              <span className="text-slate-600 dark:text-slate-400">{t('delivery_address_label')}:</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100 text-right max-w-xs">{diachi}</span>
             </div>
 
             <div className="flex justify-between">
-              <span className="text-slate-600">Phương thức:</span>
-              <span className="font-bold text-slate-900">
+              <span className="text-slate-600 dark:text-slate-400">{t('payment_method_title')}:</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">
                 {paymentMethod === 'COD'
-                  ? 'Thanh toán tiền mặt khi nhận hàng (COD)'
-                  : 'Chuyển khoản ngân hàng (VietQR)'}
+                  ? t('cod_label')
+                  : t('bank_transfer_label')}
               </span>
             </div>
 
-            <div className="flex justify-between pt-2 border-t border-slate-200 font-bold">
-              <span className="text-slate-900 text-sm">Tổng thanh toán:</span>
-              <span className="text-rose-600 text-base font-black">
+            <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700 font-bold">
+              <span className="text-slate-900 dark:text-slate-100 text-sm">{t('total_payment')}:</span>
+              <span className="text-rose-600 dark:text-rose-400 text-base font-black">
                 {Number(orderSuccess.tongtien || 0).toLocaleString('vi-VN')} ₫
               </span>
             </div>
@@ -256,15 +256,16 @@ export default function StoreCheckoutPage() {
 
           {/* Hướng dẫn chuyển khoản nếu chọn CHUYEN_KHOAN */}
           {paymentMethod === 'CHUYEN_KHOAN' && (
-            <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5 text-left text-xs text-sky-950 space-y-2">
-              <div className="font-bold text-sm text-sky-900 flex items-center gap-2">
-                <QrCode className="h-4 w-4 text-sky-600" />
-                <span>Thông Tin Chuyển Khoản Ngân Hàng (VietQR)</span>
+            <div className="rounded-2xl border border-sky-200 dark:border-sky-900 bg-sky-50/70 dark:bg-sky-950/40 p-5 text-left text-xs text-sky-950 dark:text-sky-200 space-y-2">
+              <div className="font-bold text-sm text-sky-900 dark:text-sky-300 flex items-center gap-2">
+                <QrCode className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                <span>{lang === 'VI' ? 'Thông Tin Chuyển Khoản Ngân Hàng (VietQR)' : 'VietQR Bank Transfer Details'}</span>
               </div>
-              <p className="text-[11px] text-sky-800">
-                Quý khách vui lòng chuyển khoản với cú pháp: <strong>DH{orderSuccess.madonhang} {sdt}</strong>
+              <p className="text-[11px] text-sky-800 dark:text-sky-300">
+                {lang === 'VI' ? 'Quý khách vui lòng chuyển khoản với cú pháp:' : 'Please transfer with description:'}{' '}
+                <strong>DH{orderSuccess.madonhang} {sdt}</strong>
               </p>
-              <div className="bg-white p-3.5 rounded-xl border border-sky-200 space-y-1 font-mono text-[11px] text-slate-800">
+              <div className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-sky-200 dark:border-sky-800 space-y-1 font-mono text-[11px] text-slate-800 dark:text-slate-200">
                 <div>Ngân hàng: <strong>MB BANK (Ngân hàng Quân Đội)</strong></div>
                 <div>Số tài khoản: <strong>090123456789</strong></div>
                 <div>Chủ tài khoản: <strong>ISTORE VIETNAM</strong></div>
@@ -277,9 +278,9 @@ export default function StoreCheckoutPage() {
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href="/"
-              className="rounded-xl bg-slate-900 px-6 py-3 text-xs font-bold text-white shadow hover:bg-slate-800 transition-colors"
+              className="rounded-xl bg-slate-900 dark:bg-sky-600 px-6 py-3 text-xs font-bold text-white shadow hover:bg-slate-800 dark:hover:bg-sky-500 transition-colors"
             >
-              ➔ Về Trang Chủ Tiếp Tục Mua Sắm
+              {t('back_home_btn')}
             </Link>
           </div>
         </div>
@@ -293,17 +294,19 @@ export default function StoreCheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">
-          Giỏ hàng của bạn đang trống
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+          {t('empty_cart_title')}
         </h2>
-        <p className="text-xs text-slate-500">
-          Vui lòng thêm sản phẩm vào giỏ trước khi tiến hành thanh toán.
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          {lang === 'VI'
+            ? 'Vui lòng thêm sản phẩm vào giỏ trước khi tiến hành thanh toán.'
+            : 'Please add products to your cart before proceeding with checkout.'}
         </p>
         <Link
           href="/products"
-          className="inline-block rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800"
+          className="inline-block rounded-xl bg-slate-900 dark:bg-sky-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-sky-500"
         >
-          ➔ Chọn Sản Phẩm iPhone
+          ➔ {lang === 'VI' ? 'Chọn Sản Phẩm iPhone' : 'Explore iPhone Catalog'}
         </Link>
       </div>
     );
@@ -314,47 +317,50 @@ export default function StoreCheckoutPage() {
   const hasDiscontinued = items.some((i) => i.discontinued);
   const hasOutOfStock = items.some((i) => i.outOfStock || i.soluongton === 0);
 
+  // Demo customers for quick login
+  const demoCustomers = DEMO_USERS.filter((u) => u.role === 'KHACH_HANG');
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8">
       {/* Tiêu đề & Breadcrumb */}
       <div>
-        <div className="text-xs text-slate-500 mb-1">
-          Trang chủ / Giỏ hàng / Đặt hàng & Thanh toán
+        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+          {t('home')} / {t('cart')} / {t('checkout_heading')}
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-          <CreditCard className="h-7 w-7 text-sky-600" />
-          <span>Đặt Hàng & Thanh Toán</span>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
+          <CreditCard className="h-7 w-7 text-sky-600 dark:text-sky-400" />
+          <span>{t('checkout_heading')}</span>
         </h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Vui lòng kiểm tra thông tin người nhận, danh sách sản phẩm và đối chiếu giá bán trước khi gửi đơn hàng.
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          {t('checkout_sub')}
         </p>
       </div>
 
       {/* CẢNH BÁO ĐỐI CHIẾU TỒN KHO & GIÁ TỪ API */}
       {syncWarnings.length > 0 && (
-        <div className="rounded-3xl border border-amber-300 bg-amber-50 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-amber-900 font-extrabold text-sm">
-            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-            <span>Thông Báo Đối Chiếu Dữ Liệu Tức Thời Từ API Hệ Thống:</span>
+        <div className="rounded-3xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-5 space-y-3">
+          <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-extrabold text-sm">
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>{lang === 'VI' ? 'Thông Báo Đối Chiếu Dữ Liệu Tức Thời Từ API Hệ Thống:' : 'Real-time API Snapshot Alerts:'}</span>
           </div>
 
           <div className="space-y-2">
             {syncWarnings.map((w, idx) => (
               <div
                 key={idx}
-                className="flex items-start justify-between rounded-xl bg-white/90 p-3 border border-amber-200 text-xs text-amber-900 gap-3"
+                className="flex items-start justify-between rounded-xl bg-white/90 dark:bg-slate-900/90 p-3 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-300 gap-3"
               >
                 <div>
                   <div className="font-bold">
                     [{w.type === 'PRICE_CHANGED'
-                      ? 'THAY ĐỔI GIÁ'
+                      ? (lang === 'VI' ? 'THAY ĐỔI GIÁ' : 'PRICE CHANGED')
                       : w.type === 'DISCONTINUED'
-                        ? 'NGỪNG KINH DOANH'
+                        ? (lang === 'VI' ? 'NGỪNG KINH DOANH' : 'DISCONTINUED')
                         : w.type === 'OUT_OF_STOCK'
-                          ? 'HẾT HÀNG'
-                          : 'ĐIỀU CHỈNH TỒN KHO'}] {w.tensanpham}
+                          ? (lang === 'VI' ? 'HẾT HÀNG' : 'OUT OF STOCK')
+                          : (lang === 'VI' ? 'ĐIỀU CHỈNH TỒN KHO' : 'STOCK ADJUSTED')}] {w.tensanpham}
                   </div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">{w.message}</div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">{w.message}</div>
                 </div>
 
                 {(w.type === 'DISCONTINUED' || w.type === 'OUT_OF_STOCK') && (
@@ -363,7 +369,7 @@ export default function StoreCheckoutPage() {
                     onClick={() => handleRemoveInvalidItem(w.masanpham)}
                     className="shrink-0 rounded-lg bg-rose-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-rose-500"
                   >
-                    Xóa Khỏi Giỏ
+                    {lang === 'VI' ? 'Xóa Khỏi Giỏ' : 'Remove Item'}
                   </button>
                 )}
               </div>
@@ -377,74 +383,78 @@ export default function StoreCheckoutPage() {
           {/* CỘT TRÁI: Thông tin Khách hàng, Giao hàng, Phương thức (lg:col-span-7) */}
           <div className="lg:col-span-7 space-y-6">
             {/* 1. Trạng thái Đăng nhập (Bắt buộc) */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4 transition-colors">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-xs">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 dark:bg-sky-600 text-white font-bold text-xs">
                     1
                   </span>
-                  <h3 className="font-extrabold text-slate-900 text-base">
-                    Tài Khoản Đặt Hàng
+                  <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base">
+                    {lang === 'VI' ? 'Tài Khoản Đặt Hàng' : 'Ordering Account'}
                   </h3>
                 </div>
 
                 {customer ? (
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                  <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
                     <UserCheck className="h-3.5 w-3.5" />
-                    <span>Đã đăng nhập</span>
+                    <span>{lang === 'VI' ? 'Đã đăng nhập' : 'Signed In'}</span>
                   </span>
                 ) : (
-                  <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 border border-rose-200">
-                    Chưa đăng nhập
+                  <span className="rounded-full bg-rose-50 dark:bg-rose-950/60 px-3 py-1 text-xs font-bold text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                    {lang === 'VI' ? 'Chưa đăng nhập' : 'Not Signed In'}
                   </span>
                 )}
               </div>
 
               {customer ? (
-                <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 border border-slate-200 text-xs">
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-4 border border-slate-200 dark:border-slate-700 text-xs">
                   <div>
-                    <div className="font-bold text-slate-900 text-sm">
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                       {customer.hoten} ({customer.tendangnhap})
                     </div>
-                    <div className="text-slate-500">{customer.email} • SĐT: {customer.sdt || 'Chưa có'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">{customer.email} • SĐT: {customer.sdt || 'Chưa có'}</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsAuthModalOpen(true)}
-                    className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                    className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                   >
-                    Đổi tài khoản
+                    {lang === 'VI' ? 'Đổi tài khoản' : 'Switch Account'}
                   </button>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-xs space-y-3">
-                  <div className="font-bold text-rose-800 text-sm flex items-center gap-1.5">
+                <div className="rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50/70 dark:bg-rose-950/40 p-4 text-xs space-y-3">
+                  <div className="font-bold text-rose-800 dark:text-rose-300 text-sm flex items-center gap-1.5">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
-                    <span>Quy định hệ thống: Khách hàng phải đăng nhập trước khi gửi đơn hàng!</span>
+                    <span>{lang === 'VI' ? 'Quy định hệ thống: Khách hàng phải đăng nhập trước khi gửi đơn hàng!' : 'Policy: Customer sign-in is required before placing orders!'}</span>
                   </div>
-                  <p className="text-[11px] text-rose-700 leading-relaxed">
-                    Đăng nhập giúp bạn theo dõi lịch sử đơn hàng, cập nhật tình trạng giao nhận và hưởng chính sách bảo hành Apple Care.
+                  <p className="text-[11px] text-rose-700 dark:text-rose-400 leading-relaxed">
+                    {lang === 'VI'
+                      ? 'Đăng nhập giúp bạn theo dõi lịch sử đơn hàng, cập nhật tình trạng giao nhận và hưởng chính sách bảo hành Apple Care.'
+                      : 'Signing in allows tracking order history, checking delivery updates, and securing Apple Care warranties.'}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => setIsAuthModalOpen(true)}
-                      className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 shadow"
+                      className="rounded-xl bg-slate-900 dark:bg-sky-600 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-sky-500 shadow"
                     >
-                      Đăng Nhập Ngay ➔
+                      {t('auth_required_btn')} ➔
                     </button>
 
-                    <span className="text-[11px] text-slate-500">hoặc chọn nhanh:</span>
-                    {DEMO_CUSTOMERS.map((c, idx) => (
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {lang === 'VI' ? 'hoặc chọn nhanh:' : 'or quick select:'}
+                    </span>
+                    {demoCustomers.map((c) => (
                       <button
                         key={c.mataikhoan}
                         type="button"
                         onClick={() => {
-                          const user = authApi.loginDemo(idx);
-                          handleAuthSuccess(user);
+                          const user = authApi.loginDirect(c.tendangnhap);
+                          if (user) handleAuthSuccess(user);
                         }}
-                        className="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                        className="rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
                       >
                         {c.tendangnhap}
                       </button>
@@ -455,20 +465,20 @@ export default function StoreCheckoutPage() {
             </div>
 
             {/* 2. Thông tin Người nhận hàng */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-xs">
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4 transition-colors">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 dark:bg-sky-600 text-white font-bold text-xs">
                   2
                 </span>
-                <h3 className="font-extrabold text-slate-900 text-base">
-                  Thông Tin Người Nhận & Địa Chỉ Giao Hàng
+                <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base">
+                  {t('recipient_info_title')}
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Họ và tên người nhận <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    {t('recipient_name_label')} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -476,13 +486,13 @@ export default function StoreCheckoutPage() {
                     onChange={(e) => setHoten(e.target.value)}
                     required
                     placeholder="Nguyễn Văn An"
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:border-sky-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3.5 py-2.5 text-xs focus:border-sky-600 dark:focus:border-sky-400 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Số điện thoại liên hệ <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    {t('recipient_phone_label')} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -490,47 +500,47 @@ export default function StoreCheckoutPage() {
                     onChange={(e) => setSdt(e.target.value)}
                     required
                     placeholder="0901234567"
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:border-sky-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3.5 py-2.5 text-xs focus:border-sky-600 dark:focus:border-sky-400 focus:outline-none"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Địa chỉ nhận hàng chi tiết <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    {t('recipient_address_label')} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={diachi}
                     onChange={(e) => setDiachi(e.target.value)}
                     required
-                    placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/TP"
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:border-sky-600 focus:outline-none"
+                    placeholder={lang === 'VI' ? 'Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/TP' : 'House number, street, ward, district, city'}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3.5 py-2.5 text-xs focus:border-sky-600 dark:focus:border-sky-400 focus:outline-none"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Ghi chú đơn hàng (Tùy chọn)
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    {t('order_note_label')}
                   </label>
                   <textarea
                     rows={2}
                     value={ghichu}
                     onChange={(e) => setGhichu(e.target.value)}
-                    placeholder="Giao trong giờ hành chính, gọi trước khi giao..."
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs focus:border-sky-600 focus:outline-none"
+                    placeholder={lang === 'VI' ? 'Giao trong giờ hành chính, gọi trước khi giao...' : 'Deliver during business hours, call before delivery...'}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3.5 py-2.5 text-xs focus:border-sky-600 dark:focus:border-sky-400 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* 3. Phương thức Thanh toán */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-xs">
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4 transition-colors">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 dark:bg-sky-600 text-white font-bold text-xs">
                   3
                 </span>
-                <h3 className="font-extrabold text-slate-900 text-base">
-                  Chọn Phương Thức Thanh Toán
+                <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base">
+                  {t('payment_method_title')}
                 </h3>
               </div>
 
@@ -538,8 +548,8 @@ export default function StoreCheckoutPage() {
                 <label
                   className={`flex items-start gap-3 rounded-2xl border p-4 cursor-pointer transition-all ${
                     paymentMethod === 'COD'
-                      ? 'border-slate-900 bg-slate-50 ring-2 ring-slate-900/10'
-                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                      ? 'border-slate-900 dark:border-sky-500 bg-slate-50 dark:bg-sky-950/40 ring-2 ring-slate-900/10 dark:ring-sky-500/20'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750'
                   }`}
                 >
                   <input
@@ -551,12 +561,14 @@ export default function StoreCheckoutPage() {
                     className="mt-0.5 text-slate-900 focus:ring-slate-900"
                   />
                   <div>
-                    <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                      <CreditCard className="h-3.5 w-3.5 text-slate-700" />
-                      <span>Thanh toán khi nhận hàng (COD)</span>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                      <CreditCard className="h-3.5 w-3.5 text-slate-700 dark:text-slate-300" />
+                      <span>{t('cod_label')}</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Kiểm tra hàng trước khi thanh toán tiền mặt cho nhân viên giao hàng.
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      {lang === 'VI'
+                        ? 'Kiểm tra hàng trước khi thanh toán tiền mặt cho nhân viên giao hàng.'
+                        : 'Inspect goods before paying cash to the courier.'}
                     </p>
                   </div>
                 </label>
@@ -564,8 +576,8 @@ export default function StoreCheckoutPage() {
                 <label
                   className={`flex items-start gap-3 rounded-2xl border p-4 cursor-pointer transition-all ${
                     paymentMethod === 'CHUYEN_KHOAN'
-                      ? 'border-sky-600 bg-sky-50/70 ring-2 ring-sky-600/30'
-                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                      ? 'border-sky-600 dark:border-sky-400 bg-sky-50/70 dark:bg-sky-950/40 ring-2 ring-sky-600/30'
+                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750'
                   }`}
                 >
                   <input
@@ -577,12 +589,14 @@ export default function StoreCheckoutPage() {
                     className="mt-0.5 text-sky-600 focus:ring-sky-500"
                   />
                   <div>
-                    <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                      <QrCode className="h-3.5 w-3.5 text-sky-600" />
-                      <span>Chuyển khoản ngân hàng (VietQR)</span>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                      <QrCode className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+                      <span>{t('bank_transfer_label')}</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Quét mã QR tự động điền số tiền và nội dung chuyển khoản.
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      {lang === 'VI'
+                        ? 'Quét mã QR tự động điền số tiền và nội dung chuyển khoản.'
+                        : 'Scan VietQR code with pre-filled amount and order syntax.'}
                     </p>
                   </div>
                 </label>
@@ -592,58 +606,58 @@ export default function StoreCheckoutPage() {
 
           {/* CỘT PHẢI: Xác nhận Sản phẩm & Tổng tiền (lg:col-span-5) */}
           <div className="lg:col-span-5 space-y-5">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="font-extrabold text-slate-900 text-base">
-                  Xác Nhận Đơn Hàng ({totalCount} máy)
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4 transition-colors">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base">
+                  {lang === 'VI' ? `Xác Nhận Đơn Hàng (${totalCount} máy)` : `Order Confirmation (${totalCount} items)`}
                 </h3>
                 <Link
                   href="/cart"
-                  className="text-xs font-bold text-sky-600 hover:text-sky-700"
+                  className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700"
                 >
-                  Sửa giỏ hàng ➔
+                  {lang === 'VI' ? 'Sửa giỏ hàng ➔' : 'Edit cart ➔'}
                 </Link>
               </div>
 
               {/* Danh sách sản phẩm trong giỏ */}
-              <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto pr-1">
                 {items.map((item) => (
                   <div key={item.masanpham} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 shrink-0 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center">
+                      <div className="relative h-12 w-12 shrink-0 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 flex items-center justify-center">
                         {item.hinhanh ? (
                           <img src={item.hinhanh} alt={item.tensanpham} className="h-full w-full object-contain" />
                         ) : (
                           <span className="text-xs text-slate-300">iPhone</span>
                         )}
-                        <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
+                        <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 dark:bg-sky-600 text-[10px] font-bold text-white">
                           {item.soluong}
                         </span>
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900 line-clamp-1">{item.tensanpham}</div>
-                        <div className="text-[11px] text-slate-500">
+                        <div className="font-bold text-slate-900 dark:text-slate-100 line-clamp-1">{item.tensanpham}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
                           {item.dungluong} • {item.mausac}
                         </div>
                         {item.priceChanged && (
-                          <span className="text-[10px] font-bold text-amber-600 block">
-                            (Giá vừa cập nhật)
+                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 block">
+                            ({lang === 'VI' ? 'Giá vừa cập nhật' : 'Price updated'})
                           </span>
                         )}
                         {item.discontinued && (
-                          <span className="text-[10px] font-bold text-rose-600 block">
-                            (Đã ngừng bán!)
+                          <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 block">
+                            ({lang === 'VI' ? 'Đã ngừng bán!' : 'Discontinued!'})
                           </span>
                         )}
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="font-bold text-slate-900">
+                      <div className="font-bold text-slate-900 dark:text-slate-100">
                         {(item.giaban * item.soluong).toLocaleString('vi-VN')} ₫
                       </div>
-                      <div className="text-[10px] text-slate-400">
-                        {item.giaban.toLocaleString('vi-VN')} ₫ / máy
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                        {item.giaban.toLocaleString('vi-VN')} ₫ / {t('units_left')}
                       </div>
                     </div>
                   </div>
@@ -651,28 +665,28 @@ export default function StoreCheckoutPage() {
               </div>
 
               {/* Bảng tính chi phí */}
-              <div className="pt-3 border-t border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between text-slate-600">
-                  <span>Tạm tính tiền hàng:</span>
-                  <span className="font-bold text-slate-900">
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>{t('subtotal_goods')}:</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">
                     {totalAmount.toLocaleString('vi-VN')} ₫
                   </span>
                 </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Phí vận chuyển:</span>
-                  <span className="font-bold text-emerald-600">Miễn phí (0 ₫)</span>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>{t('shipping_fee')}:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{t('free')}</span>
                 </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Thời gian giao hàng dự kiến:</span>
-                  <span className="font-bold text-slate-900">1 - 2 ngày làm việc</span>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>{t('estimated_delivery_label')}:</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">{t('expected_delivery')}</span>
                 </div>
 
-                <div className="pt-3 border-t border-slate-200 flex justify-between items-baseline">
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-baseline">
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block">Tổng thanh toán:</span>
-                    <span className="text-[10px] text-slate-400">Đã bao gồm VAT</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{t('total_payment')}:</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500">{t('vat_included')}</span>
                   </div>
-                  <div className="text-2xl font-black text-rose-600">
+                  <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
                     {totalAmount.toLocaleString('vi-VN')} ₫
                   </div>
                 </div>
@@ -683,30 +697,48 @@ export default function StoreCheckoutPage() {
                 <button
                   type="submit"
                   disabled={submitting || hasDiscontinued || hasOutOfStock}
-                  className="w-full rounded-xl bg-slate-900 py-4 text-xs sm:text-sm font-black text-white shadow-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-slate-900 dark:bg-sky-600 py-4 text-xs sm:text-sm font-black text-white shadow-xl hover:bg-slate-800 dark:hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                 >
-                  <span>{submitting ? 'Đang gửi yêu cầu đặt hàng...' : 'XÁC NHẬN ĐẶT HÀNG NGAY'}</span>
+                  <span>
+                    {submitting
+                      ? (lang === 'VI' ? 'Đang gửi yêu cầu đặt hàng...' : 'Submitting order...')
+                      : t('confirm_order_btn')}
+                  </span>
                   {!submitting && <ArrowRight className="h-4 w-4" />}
                 </button>
 
                 {(hasDiscontinued || hasOutOfStock) && (
-                  <p className="text-[11px] text-rose-600 font-semibold text-center mt-2">
-                    Vui lòng gỡ bỏ các sản phẩm hết hàng hoặc ngừng kinh doanh trước khi đặt hàng.
+                  <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold text-center mt-2">
+                    {lang === 'VI'
+                      ? 'Vui lòng gỡ bỏ các sản phẩm hết hàng hoặc ngừng kinh doanh trước khi đặt hàng.'
+                      : 'Please remove out-of-stock or discontinued items before ordering.'}
                   </p>
                 )}
               </div>
             </div>
 
             {/* Khối chính sách an toàn */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 space-y-2 text-xs text-slate-600">
-              <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-sky-600" />
-                <span>Chính Sách Kiểm Tra Đơn Hàng An Toàn</span>
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-4 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+              <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                <span>{lang === 'VI' ? 'Chính Sách Kiểm Tra Đơn Hàng An Toàn' : 'Secure Order Verification Policy'}</span>
               </div>
-              <ul className="space-y-1 text-[11px] list-disc list-inside text-slate-500 leading-relaxed">
-                <li>Backend NestJS tự động kiểm tra lại tồn kho và giá bán trong CSDL trước khi tạo đơn hàng.</li>
-                <li>Đơn hàng mới được lưu ở trạng thái <code>CHO_XAC_NHAN</code>, kho chỉ bị trừ khi nhân viên duyệt đơn.</li>
-                <li>Khách hàng được quyền hủy đơn chờ duyệt bất kỳ lúc nào tại mục Đơn mua.</li>
+              <ul className="space-y-1 text-[11px] list-disc list-inside text-slate-500 dark:text-slate-400 leading-relaxed">
+                <li>
+                  {lang === 'VI'
+                    ? 'Backend NestJS tự động kiểm tra lại tồn kho và giá bán trong CSDL trước khi tạo đơn hàng.'
+                    : 'NestJS backend automatically verifies live inventory and pricing in the database before order creation.'}
+                </li>
+                <li>
+                  {lang === 'VI'
+                    ? 'Đơn hàng mới được lưu ở trạng thái CHO_XAC_NHAN, kho chỉ bị trừ khi nhân viên duyệt đơn.'
+                    : 'New orders are recorded as CHO_XAC_NHAN; inventory is only deducted upon staff approval.'}
+                </li>
+                <li>
+                  {lang === 'VI'
+                    ? 'Khách hàng được quyền hủy đơn chờ duyệt bất kỳ lúc nào tại mục Đơn mua.'
+                    : 'Customers can cancel pending orders at any time from their order history.'}
+                </li>
               </ul>
             </div>
           </div>
