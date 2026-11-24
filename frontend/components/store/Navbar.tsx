@@ -154,7 +154,7 @@ export default function StoreNavbar() {
                 <span className="text-sky-400">i</span>Store
               </span>
               <span className="text-[10px] text-slate-400 font-medium tracking-tight block">
-                Authorized iPhone Reseller
+                {lang === 'VI' ? 'Hệ thống phân phối iPhone' : 'Authorized iPhone Reseller'}
               </span>
             </div>
           </Link>

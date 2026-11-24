@@ -4,7 +4,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
+  Eye,
   EyeOff,
+  FolderKanban,
   Package,
   Plus,
   Warehouse,
@@ -176,31 +178,33 @@ export default function StaffProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">
             Quản Lý Danh Mục, Sản Phẩm iPhone & Tồn Kho
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Quản lý phiên bản màu sắc, dung lượng, mã SKU • Cập nhật giá & tồn kho (`TON_KHO`) • Ẩn sản phẩm ngừng kinh doanh (Soft Delete)
+          <p className="text-xs text-slate-500 mt-1 whitespace-nowrap">
+            Quản lý phiên bản màu sắc, dung lượng, mã SKU • Cập nhật giá & tồn kho • Ẩn sản phẩm ngừng kinh doanh
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
           <button
             type="button"
             onClick={() => setStorePreviewOpen(true)}
-            className="rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors whitespace-nowrap"
           >
-            👁️ Kiểm thử Trang Khách hàng (Ẩn SP)
+            <Eye className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+            <span>Kiểm thử Trang Khách hàng (Ẩn SP)</span>
           </button>
 
           <button
             type="button"
             onClick={() => setCategoryModalOpen(true)}
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap"
           >
-            🗂️ Quản lý Danh mục ({categories.length})
+            <FolderKanban className="h-3.5 w-3.5 text-slate-600 shrink-0" />
+            <span>Quản lý Danh mục ({categories.length})</span>
           </button>
 
           <button
@@ -209,9 +213,10 @@ export default function StaffProductsPage() {
               setEditingProduct(null);
               setProductModalOpen(true);
             }}
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition-colors whitespace-nowrap"
           >
-            + Thêm Phiên Bản iPhone Mới
+            <Plus className="h-3.5 w-3.5 shrink-0" />
+            <span>Thêm Phiên Bản iPhone Mới</span>
           </button>
         </div>
       </div>

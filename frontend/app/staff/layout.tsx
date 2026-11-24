@@ -168,7 +168,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
     {
       key: '/staff/orders',
       icon: <ShoppingOutlined />,
-      label: <Link href="/staff/orders">Quản lý đơn hàng (Mục A4)</Link>,
+      label: <Link href="/staff/orders">Quản lý đơn hàng</Link>,
     },
   ];
 
@@ -235,8 +235,8 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
 
       <Layout>
         <Header
-          style={{ background: colorBgContainer }}
-          className="px-6 flex items-center justify-between border-b border-gray-200 h-16"
+          style={{ background: colorBgContainer, lineHeight: 'normal' }}
+          className="px-6 flex items-center justify-between border-b border-gray-200 h-16 leading-normal"
         >
           <Button
             type="text"
@@ -245,16 +245,17 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             className="text-base"
           />
 
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs font-bold text-gray-900">{customer.hoten}</div>
-              <div className="text-[11px] text-blue-600 font-semibold">
-                {customer.chucvu || (customer.role === 'ADMIN' ? 'Quản Trị Viên Hệ Thống' : 'Nhân Viên Bán Hàng')}
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:flex flex-col justify-center">
+              <span className="text-sm font-bold text-gray-900 leading-snug">{customer.hoten}</span>
+              <span className="text-[11px] text-blue-600 font-semibold leading-tight">
+                {customer.chucvu || (customer.role === 'ADMIN' ? 'Quản Trị Viên Hệ Thống' : 'Chuyên viên bán hàng (Staff)')}
+              </span>
             </div>
             <Avatar
               icon={<UserOutlined />}
-              className={customer.role === 'ADMIN' ? 'bg-purple-600' : 'bg-blue-600'}
+              size={38}
+              className={customer.role === 'ADMIN' ? 'bg-purple-600 shrink-0' : 'bg-blue-600 shrink-0'}
             />
           </div>
         </Header>

@@ -159,10 +159,10 @@ export default function StaffOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
         <div>
           <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
-            Phân hệ Quản lý Bán hàng • Mục A4 (20 điểm)
+            Hệ Thống Quản Lý Bán Hàng
           </div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-            Quản Lý & Duyệt Đơn Hàng iPhone
+            Quản Lý Đơn Hàng
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
             Quy tắc nghiệp vụ: Khi duyệt đơn hàng, số máy trong kho sẽ <strong>tự động giảm</strong>. Khi hủy đơn, số lượng sẽ <strong>được hoàn lại kho</strong>.
@@ -306,7 +306,7 @@ export default function StaffOrdersPage() {
                 return (
                   <tr key={order.madonhang} className="hover:bg-gray-50/60 transition-colors">
                     {/* Mã Đơn & Ngày Đặt */}
-                    <td className="px-4 py-3.5 align-top">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
                       <div className="font-mono font-bold text-gray-900">
                         #{order.madonhang}
                       </div>
@@ -317,31 +317,28 @@ export default function StaffOrdersPage() {
                     </td>
 
                     {/* Khách Hàng */}
-                    <td className="px-4 py-3.5 align-top">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
                       <div className="font-bold text-gray-900">
                         {order.KHACH_HANG?.hoten || 'Khách vãng lai'}
                       </div>
                       <div className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
-                        <Phone className="h-3 w-3" />
+                        <Phone className="h-3 w-3 text-gray-400 shrink-0" />
                         <span>{order.KHACH_HANG?.sdt || 'Chưa có SĐT'}</span>
-                      </div>
-                      <div className="text-[11px] text-gray-400 truncate max-w-xs mt-0.5">
-                        {order.KHACH_HANG?.diachi || 'Giao tại cửa hàng'}
                       </div>
                     </td>
 
                     {/* Sản Phẩm */}
-                    <td className="px-4 py-3.5 align-top">
+                    <td className="px-4 py-3.5 align-middle">
                       <div className="space-y-1">
                         {order.CHI_TIET_DON_HANG?.map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
+                          <div key={idx} className="flex items-center gap-2 whitespace-nowrap">
                             <span className="font-bold text-gray-900">
                               {item.SAN_PHAM?.tensanpham || 'iPhone'}
                             </span>
                             <span className="text-[11px] text-gray-500">
                               ({item.SAN_PHAM?.dungluong} - {item.SAN_PHAM?.mausac})
                             </span>
-                            <span className="rounded bg-gray-100 px-1.5 py-0.2 text-[10px] font-extrabold text-blue-700">
+                            <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-extrabold text-blue-700">
                               x{item.soluong}
                             </span>
                           </div>
@@ -350,25 +347,25 @@ export default function StaffOrdersPage() {
                     </td>
 
                     {/* Tổng Tiền */}
-                    <td className="px-4 py-3.5 align-top text-right font-black text-rose-600 text-sm">
+                    <td className="px-4 py-3.5 align-middle text-right font-black text-rose-600 text-sm whitespace-nowrap">
                       {order.tongtien.toLocaleString('vi-VN')} ₫
                     </td>
 
                     {/* Phương Thức Thanh Toán */}
-                    <td className="px-4 py-3.5 align-top">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
                       <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-bold text-gray-700">
                         {order.phuongthucthanhtoan === 'COD' ? 'Tiền mặt (COD)' : 'Chuyển khoản'}
                       </span>
                     </td>
 
                     {/* Trạng Thái */}
-                    <td className="px-4 py-3.5 align-top">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
                       {renderStatusBadge(order.trangthai)}
                     </td>
 
-                    {/* Thao Tác Quản Lý (Mục A4) */}
-                    <td className="px-4 py-3.5 align-top">
-                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                    {/* Thao Tác Quản Lý */}
+                    <td className="px-4 py-3.5 align-middle text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1.5">
                         {/* Nút Xem Chi Tiết */}
                         <button
                           type="button"

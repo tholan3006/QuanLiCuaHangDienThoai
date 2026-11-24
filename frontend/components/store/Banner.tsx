@@ -91,8 +91,8 @@ export default function StoreBanner() {
               {/* Quầng sáng vàng ánh kim Titan Sa Mạc */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-500/20 via-orange-400/10 to-transparent blur-3xl transform group-hover:scale-105 transition duration-700 pointer-events-none" />
 
-              {/* Khung trưng bày máy màu xanh Slate đồng điệu với nền */}
-              <div className="relative z-10 w-full rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm p-6 flex flex-col items-center shadow-xl">
+              {/* Khung trưng bày máy màu xanh Slate đồng điệu với nền (ĐÃ XÓA ĐƯỜNG VIỀN BORDER THEO HÌNH 3) */}
+              <div className="relative z-10 w-full rounded-3xl p-2 sm:p-4 flex flex-col items-center">
                 <Link
                   href="/products/1"
                   onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
@@ -105,8 +105,8 @@ export default function StoreBanner() {
                   />
                 </Link>
 
-                {/* Badge thông tin dưới ảnh máy */}
-                <div className="mt-3 w-full rounded-2xl border border-slate-800 bg-slate-950/70 backdrop-blur px-4 py-2.5 text-center shadow-lg">
+                {/* Badge thông tin dưới ảnh máy (không viền thô) */}
+                <div className="mt-2 w-full max-w-xs rounded-2xl bg-slate-900/80 backdrop-blur px-4 py-2 text-center shadow-md">
                   <div className="text-xs font-bold text-white flex items-center justify-center gap-1.5">
                     <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
                     <span>iPhone 16 Pro Max • Titan Sa Mạc</span>

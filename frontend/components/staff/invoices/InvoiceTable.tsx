@@ -89,7 +89,7 @@ export function InvoiceTable({
       width: 100,
       align: 'center' as const,
       render: (val: number) => (
-        <span className="font-bold text-blue-600">
+        <span className="font-bold text-blue-600 whitespace-nowrap">
           #{String(val).padStart(6, '0')}
         </span>
       ),
@@ -100,7 +100,7 @@ export function InvoiceTable({
       key: 'madonhang',
       width: 90,
       align: 'center' as const,
-      render: (val: number) => <span className="font-semibold text-gray-700">#{val}</span>,
+      render: (val: number) => <span className="font-semibold text-gray-700 whitespace-nowrap">#{val}</span>,
     },
     {
       title: 'Ngày lập',
@@ -108,7 +108,7 @@ export function InvoiceTable({
       key: 'ngaylap',
       width: 160,
       render: (dateStr: string) => (
-        <span className="text-xs text-gray-600">
+        <span className="text-xs text-gray-600 whitespace-nowrap">
           {dateStr ? new Date(dateStr).toLocaleString('vi-VN') : '---'}
         </span>
       ),
@@ -119,9 +119,9 @@ export function InvoiceTable({
       render: (_: any, record: InvoiceItem) => {
         const c = record.DON_HANG?.KHACH_HANG;
         return (
-          <div>
-            <div className="font-semibold text-gray-900">{c?.hoten || 'Khách vãng lai'}</div>
-            {c?.sdt && <div className="text-xs text-gray-500">{c.sdt}</div>}
+          <div className="whitespace-nowrap">
+            <span className="font-semibold text-gray-900">{c?.hoten || 'Khách vãng lai'}</span>
+            {c?.sdt && <span className="text-xs text-gray-500 ml-1.5 font-normal">({c.sdt})</span>}
           </div>
         );
       },
@@ -131,7 +131,7 @@ export function InvoiceTable({
       key: 'staff',
       width: 160,
       render: (_: any, record: InvoiceItem) => (
-        <span className="text-sm text-gray-800">
+        <span className="text-sm text-gray-800 whitespace-nowrap">
           {record.NHAN_VIEN?.hoten || 'Trần Minh Tuấn'}
         </span>
       ),
@@ -143,20 +143,22 @@ export function InvoiceTable({
       width: 140,
       align: 'center' as const,
       render: (val: string) => (
-        <Tag color={val === 'CHUYEN_KHOAN' ? 'blue' : 'orange'}>
-          {val === 'CHUYEN_KHOAN' ? 'Chuyển khoản' : 'COD (Tiền mặt)'}
-        </Tag>
+        <span className="whitespace-nowrap">
+          <Tag color={val === 'CHUYEN_KHOAN' ? 'blue' : 'orange'}>
+            {val === 'CHUYEN_KHOAN' ? 'Chuyển khoản' : 'COD (Tiền mặt)'}
+          </Tag>
+        </span>
       ),
     },
     {
       title: 'Tổng tiền',
       dataIndex: 'tongtien',
       key: 'tongtien',
-      width: 150,
+      width: 160,
       align: 'right' as const,
       render: (val: number, record: InvoiceItem) => (
         <span
-          className={`font-bold ${
+          className={`font-bold whitespace-nowrap ${
             record.trangthai === 'VOID' ? 'line-through text-gray-400' : 'text-gray-900'
           }`}
         >
@@ -168,37 +170,41 @@ export function InvoiceTable({
       title: 'Trạng thái',
       dataIndex: 'trangthai',
       key: 'trangthai',
-      width: 140,
+      width: 150,
       align: 'center' as const,
       render: (status: string) => {
         if (status === 'VOID') {
           return (
-            <Tag icon={<CloseCircleOutlined />} color="error">
-              ĐÃ HỦY (VOID)
-            </Tag>
+            <span className="whitespace-nowrap">
+              <Tag icon={<CloseCircleOutlined />} color="error">
+                ĐÃ HỦY (VOID)
+              </Tag>
+            </span>
           );
         }
         return (
-          <Tag icon={<CheckCircleOutlined />} color="success">
-            HỢP LỆ (ISSUED)
-          </Tag>
+          <span className="whitespace-nowrap">
+            <Tag icon={<CheckCircleOutlined />} color="success">
+              HỢP LỆ (ISSUED)
+            </Tag>
+          </span>
         );
       },
     },
     {
       title: 'Hành động',
       key: 'action',
-      width: 130,
+      width: 120,
       align: 'center' as const,
       render: (_: any, record: InvoiceItem) => (
-        <Space size="small">
+        <Space size="small" className="whitespace-nowrap">
           <Tooltip title="Xem chi tiết & In hóa đơn khổ A4">
             <Button
               type="primary"
               size="small"
               icon={<PrinterOutlined />}
               onClick={() => handleOpenDetail(record)}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
             >
               In A4
             </Button>
