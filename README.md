@@ -146,14 +146,56 @@ cp .env.example .env.local
 npm install
 npm run dev
 ```
+- Giao diện Trang chủ Mua sắm (Khách hàng - TV3): `http://localhost:3000`
+- Giao diện Danh sách & Lọc Sản phẩm (Khách hàng - TV3): `http://localhost:3000/products`
+- Giao diện Chi tiết Sản phẩm & Biến thể (Khách hàng - TV3): `http://localhost:3000/products/1`
+- Giao diện Giỏ hàng (Khách hàng - TV3): `http://localhost:3000/cart`
+- Giao diện Đặt hàng & Thanh toán (Khách hàng - TV3): `http://localhost:3000/checkout`
 - Giao diện Quản lý Sản phẩm (Nhân viên - TV2): `http://localhost:3000/staff/products`
-- Giao diện Danh sách Sản phẩm (Khách hàng): `http://localhost:3000/products`
+- Giao diện Quản lý Đơn hàng (Nhân viên - TV4): `http://localhost:3000/staff/orders`
 - Giao diện Hóa đơn Bán hàng (Nhân viên - TV5): `http://localhost:3000/staff/invoices`
 - Giao diện Dashboard Thống kê (Nhân viên - TV5): `http://localhost:3000/staff/dashboard`
 
 ---
 
-## Hướng dẫn Kiểm thử Phân hệ Hóa đơn & Thống kê (Thành viên 5)
+## Hướng dẫn Kiểm thử Phân hệ Khách hàng & Quy trình Mua sắm (Thành viên 3 - Mục A3: 20 Điểm)
+
+Phân hệ **Storefront & Quy trình Mua sắm** phụ trách toàn bộ luồng trải nghiệm khách hàng từ khi xem sản phẩm đến khi đặt hàng thành công:
+
+### 1. Duyệt sản phẩm & Tìm kiếm Autocomplete tức thời
+- Truy cập `http://localhost:3000` (Trang chủ iStore) hoặc `http://localhost:3000/products`.
+- **Hero Banner:** Trình chiếu iPhone 16 Pro Max Titan Sa Mạc hòa nền xanh navy sang trọng, không có viền hộp hay nền trắng.
+- **Tìm kiếm tức thì (Live Autocomplete):** Gõ từng ký tự vào thanh tìm kiếm trên Navbar (VD: `Pro Max`, `Sa Mạc`, `Hồng`...), danh sách gợi ý xổ xuống tức thì kèm hình ảnh thu nhỏ, phiên bản, giá bán và tình trạng kho.
+- **Bộ lọc sản phẩm:** Lọc theo Dòng máy (iPhone 16, 15, 14, 13), theo Dung lượng (128GB, 256GB, 512GB, 1TB) và theo Khoảng giá bán.
+- **Quy tắc an toàn:** Tự động ẩn các sản phẩm ngừng kinh doanh (`trangthai = 'NGUNG_KINH_DOANH'`).
+
+### 2. Chi tiết sản phẩm & Biến thể (Màu sắc, Dung lượng, Tồn kho)
+- Truy cập `http://localhost:3000/products/1`:
+- Xem thư viện hình ảnh studio chính hãng chuẩn Apple đã được xử lý nền trong suốt.
+- Bấm chọn các nút **Dung lượng** và **Màu sắc**: Trang tự động chuyển sang biến thể tương ứng, cập nhật giá và tồn kho tức thời.
+- **Chặn vượt tồn kho:** Bộ đếm số lượng (+ / -) tự động khóa khi đạt số lượng tồn kho tối đa (`soluongton`).
+- **Hỗ trợ song ngữ VI / EN:** Bấm nút chuyển ngôn ngữ trên Navbar để đổi giao diện và bảng dịch màu chuẩn Apple (Titan Sa Mạc / Desert Titanium, Xanh Lưu Ly / Ultramarine...).
+
+### 3. Giỏ hàng & Kiểm soát tồn kho (Zustand + LocalStorage)
+- Truy cập `http://localhost:3000/cart`:
+- Giỏ hàng lưu trữ bền vững tại LocalStorage (`iphone_cart_v1`), không bị mất khi F5 hoặc tắt trình duyệt.
+- Tăng / giảm số lượng có kiểm tra tồn kho realtime. Nếu vượt quá tồn kho sẽ có thông báo Toast cảnh báo.
+- Cho phép xóa từng món hoặc làm rỗng toàn bộ giỏ hàng.
+
+### 4. Quy trình Đặt hàng (Checkout) & Đối chiếu API
+- Truy cập `http://localhost:3000/checkout`:
+- **Bắt buộc Đăng nhập Khách hàng:** Nếu chưa đăng nhập, hệ thống sẽ chặn và bật Modal Đăng nhập. Có sẵn tính năng **1-Click Đăng nhập nhanh tài khoản mẫu** (`khachhang1`, `khachhang2`, `khachhang3` - Mật khẩu: `123456`).
+- **Đối chiếu Giá bán & Tồn kho từ API:** Ngay tại thời điểm mở trang Checkout, hệ thống tự động kiểm tra lại dữ liệu mới nhất từ CSDL. Nếu có sản phẩm đổi giá, hết hàng hoặc ngừng bán, hệ thống phát cảnh báo và khóa nút gửi đơn.
+- **Phương thức thanh toán:** Hỗ trợ thanh toán tiền mặt (COD) hoặc Chuyển khoản ngân hàng VietQR.
+- **Tạo đơn hàng:** Gửi yêu cầu tới Backend `POST /orders`, đơn hàng được tạo ở trạng thái `CHO_XAC_NHAN` (chưa trừ kho), giỏ hàng tự động được làm rỗng.
+
+### 5. Phân quyền nghiệp vụ RBAC Storefront
+- **Khách hàng (`KHACH_HANG`):** Sử dụng đầy đủ tính năng Giỏ hàng và Đặt hàng.
+- **Nhân viên (`NHAN_VIEN`) / Quản trị viên (`ADMIN`):** Không mua hàng trên Storefront. Navbar tự động ẩn Giỏ hàng và thay bằng nút truy cập nhanh **Staff Portal** / **Admin Portal**; các trang `/cart` và `/checkout` có màn hình bảo vệ hướng dẫn nhân viên về đúng cổng quản trị.
+
+---
+
+## Hướng dẫn Kiểm thử Phân hệ Hóa đơn & Thống kê 
 
 1. **Quản lý Hóa đơn Bán hàng (`/staff/invoices`):**
    - Đăng nhập tài khoản nhân viên: `nhanvien1` / `123456`.

@@ -137,12 +137,12 @@ Hệ thống giao diện được tổ chức trong thư mục `frontend/app/(st
 ### 4.1. Giao diện Trang Chủ (`app/(store)/page.tsx`)
 - **Đường dẫn truy cập:** `http://localhost:3000`
 - **Mô tả chức năng:**
-  + **Thanh điều hướng (Navbar):** Logo Apple iPhone Store VN, thanh tìm kiếm nhanh sản phẩm, nút truy cập giỏ hàng với huy hiệu (Badge) số lượng sản phẩm hiển thị realtime, nút Đăng nhập / Chào khách hàng và link chuyển nhanh sang cổng Nhân viên bán hàng.
-  + **Hero Banner:** Trình chiếu trực quan siêu phẩm iPhone 16 Pro Max Titan Sa Mạc, chip A18 Pro, nút Camera Control và nút chuyển hướng nhanh đến chi tiết máy.
-  + **Thanh Danh mục dòng iPhone:** Hiển thị 5 dòng máy chính (iPhone 16 Series, 15 Series, 14 Series, 13 Series, SE Series) kèm số lượng sản phẩm đang có sẵn.
+  + **Thanh điều hướng (Navbar):** Logo iStore song ngữ tương tác (`Hệ thống phân phối iPhone` khi chọn VI, `Authorized iPhone Reseller` khi chọn EN), thanh tìm kiếm Live Autocomplete gợi ý tức thời theo từng ký tự gõ, nút chuyển ngôn ngữ nhanh VI / EN, nút truy cập giỏ hàng với huy hiệu (Badge) số lượng sản phẩm hiển thị realtime, nút Đăng nhập / Chào khách hàng và link chuyển nhanh sang cổng Nhân viên bán hàng.
+  + **Hero Banner (Borderless Showcase):** Trình chiếu trực quan siêu phẩm iPhone 16 Pro Max Titan Sa Mạc, chip A18 Pro, camera 48MP Fusion, pin 33 giờ. Khung máy hòa nền xanh navy 100% không viền hộp thô, không nền trắng, toát lên vẻ sang trọng của sản phẩm Apple Flagship.
+  + **Thanh Danh mục dòng iPhone:** Hiển thị các dòng máy chính (iPhone 16 Series, 15 Series, 14 Series, 13 Series) kèm số lượng sản phẩm đang có sẵn.
   + **Khối Flagship Mới Nhất (iPhone 16 Series):** Lưới các sản phẩm iPhone 16 với đầy đủ nhãn dung lượng, màu sắc, giá bán định dạng VNĐ và nút thêm nhanh vào giỏ hàng.
   + **Khối Sản phẩm Bán chạy:** Tự động lọc các phiên bản máy có lượt mua cao để gợi ý cho khách hàng.
-  + **Chân trang (Footer):** 4 khối cam kết chất lượng chuẩn Apple Care 12 tháng, đổi mới 30 ngày, miễn phí giao hàng toàn quốc và thanh toán linh hoạt.
+  + **Chân trang (Footer):** Chính sách hỗ trợ khách hàng, cam kết bảo hành Apple Care, hotline hỗ trợ, bảng dịch đa ngôn ngữ và cổng truy cập nội bộ cho nhân viên.
 - *[Vị trí chèn ảnh minh họa: Hình 3.1 - Giao diện Trang chủ Storefront]*
 
 ### 4.2. Giao diện Danh Sách & Bộ Lọc Sản Phẩm (`app/(store)/products/page.tsx`)
@@ -210,7 +210,7 @@ Hệ thống giao diện được tổ chức trong thư mục `frontend/app/(st
 
 ## 5. BỘ KỊCH BẢN KIỂM THỬ HỆ THỐNG (TEST CASES CHI TIẾT)
 
-Dưới đây là bảng ma trận kiểm thử toàn diện gồm **15 kịch bản kiểm thử (Test Cases)** bao phủ 100% các yêu cầu nghiệp vụ của Phân hệ Người mua hàng (Mục A3):
+Dưới đây là bảng ma trận kiểm thử toàn diện gồm **17 kịch bản kiểm thử (Test Cases)** bao phủ 100% các yêu cầu nghiệp vụ của Phân hệ Người mua hàng (Mục A3):
 
 | Mã TC | Tên Kịch Bản Kiểm Thử | Tiền Điều Kiện (Pre-conditions) | Các Bước Thực Hiện (Test Steps) | Kết Quả Mong Đợi (Expected Result) | Kết Quả Thực Tế | Đánh Giá |
 |:---:|:---|:---|:---|:---|:---|:---:|
@@ -229,6 +229,8 @@ Dưới đây là bảng ma trận kiểm thử toàn diện gồm **15 kịch b
 | **TC_A3_13** | Đặt hàng thành công với phương thức COD | Đã đăng nhập `khachhang1`, giỏ có 1 máy iPhone 16 Pro Max | 1. Nhập đầy đủ địa chỉ giao hàng.<br>2. Chọn phương thức "COD".<br>3. Bấm "Xác nhận đặt hàng". | Gọi API `POST /orders`, trả về mã đơn hàng mới, trạng thái `CHO_XAC_NHAN`. Tồn kho chưa bị trừ. | Tạo đơn thành công `#madonhang`, trạng thái CHO_XAC_NHAN. | **ĐẠT** |
 | **TC_A3_14** | Đặt hàng thành công với Chuyển khoản VietQR | Đã đăng nhập, chọn phương thức `CHUYEN_KHOAN` | 1. Chọn radio Chuyển khoản ngân hàng.<br>2. Bấm "Xác nhận đặt hàng". | Hiển thị màn hình thành công kèm thông tin tài khoản MB Bank, mã QR và cú pháp chuyển khoản. | Hiển thị đầy đủ thông tin chuyển khoản chính xác. | **ĐẠT** |
 | **TC_A3_15** | Tự động làm rỗng giỏ hàng sau khi đặt thành công | Vừa hoàn tất đặt hàng thành công ở bước trên | 1. Quan sát icon giỏ hàng trên Navbar.<br>2. Truy cập vào trang `/cart`. | Giỏ hàng tự động được làm rỗng (`items = []`), badge giỏ hàng trở về 0, hiển thị giao diện giỏ trống. | Giỏ hàng rỗng hoàn toàn, không lưu vết đơn cũ. | **ĐẠT** |
+| **TC_A3_16** | Chuyển đổi ngôn ngữ VI / EN toàn diện | Đang ở bất kỳ trang nào trên Storefront | 1. Click vào nút chuyển ngôn ngữ trên Navbar.<br>2. Quan sát sự thay đổi giao diện, logo iStore và tên màu sắc. | Ngôn ngữ chuyển mượt mà giữa Tiếng Việt và Tiếng Anh. Dòng phụ logo đổi `Hệ thống phân phối iPhone` / `Authorized iPhone Reseller`. Tên màu đổi sang tiếng Anh chuẩn Apple (`Desert Titanium`, `Ultramarine`...). | Chuyển đổi ngôn ngữ chính xác 100%. | **ĐẠT** |
+| **TC_A3_17** | Phân quyền RBAC giỏ hàng (Nhân viên / Admin không mua hàng) | Đăng nhập tài khoản `nhanvien1` hoặc `admin` | 1. Quan sát thanh Navbar.<br>2. Xem thẻ sản phẩm và trang chi tiết.<br>3. Thử truy cập `/cart` hoặc `/checkout`. | Icon Giỏ hàng trên Navbar tự động ẩn và thay bằng Cổng Staff/Admin. Trang chi tiết thay nút mua bằng thông báo nghiệp vụ; trang cart/checkout có màn hình bảo vệ hướng dẫn về cổng quản lý. | Phân quyền RBAC bảo vệ luồng mua sắm chính xác 100%. | **ĐẠT** |
 
 ---
 

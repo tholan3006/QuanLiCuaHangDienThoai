@@ -216,7 +216,7 @@ export default function StaffProductsPage() {
             className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition-colors whitespace-nowrap"
           >
             <Plus className="h-3.5 w-3.5 shrink-0" />
-            <span>Thêm Phiên Bản iPhone Mới</span>
+            <span>Thêm</span>
           </button>
         </div>
       </div>
