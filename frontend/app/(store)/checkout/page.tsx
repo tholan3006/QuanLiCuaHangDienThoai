@@ -323,7 +323,7 @@ export default function StoreCheckoutPage() {
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
           <CreditCard className="h-7 w-7 text-sky-600" />
-          <span>Đặt Hàng & Thanh Toán (Checkout)</span>
+          <span>Đặt Hàng & Thanh Toán</span>
         </h1>
         <p className="text-xs text-slate-500 mt-1">
           Vui lòng kiểm tra thông tin người nhận, danh sách sản phẩm và đối chiếu giá bán trước khi gửi đơn hàng.

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Flame, Smartphone, Sparkles } from 'lucide-react';
+import { ArrowRight, Flame, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import StoreBanner from '../../components/store/Banner';
@@ -8,6 +8,46 @@ import ProductCard from '../../components/store/ProductCard';
 import StoreToast, { ToastMessage } from '../../components/store/StoreToast';
 import { categoriesApi, CategoryItem } from '../../services/categories.api';
 import { ProductItem, productsApi } from '../../services/products.api';
+
+// Cấu hình hiển thị hấp dẫn các dòng iPhone chính hãng
+const SERIES_SHOWCASE = [
+  {
+    madanhmuc: 1,
+    title: 'iPhone 16 Series',
+    tag: 'MỚI NHẤT 2024',
+    tagColor: 'bg-amber-500/10 text-amber-700 border-amber-500/30',
+    desc: 'Chip A18 Pro • Camera Control • Viền Titan',
+    fromPrice: '22.990.000 ₫',
+    image: '/images/products/iphone-16-pro-max-desert.png',
+  },
+  {
+    madanhmuc: 2,
+    title: 'iPhone 15 Series',
+    tag: 'ĐỈNH CAO TITAN',
+    tagColor: 'bg-sky-500/10 text-sky-700 border-sky-500/30',
+    desc: 'Cổng USB-C • Dynamic Island • Camera 48MP',
+    fromPrice: '19.990.000 ₫',
+    image: '/images/products/iphone-15-pro-max-natural.png',
+  },
+  {
+    madanhmuc: 3,
+    title: 'iPhone 14 Series',
+    tag: 'BÁN CHẠY NHẤT',
+    tagColor: 'bg-purple-500/10 text-purple-700 border-purple-500/30',
+    desc: 'Màn hình OLED • Pin cả ngày • Hiệu năng mượt',
+    fromPrice: '16.990.000 ₫',
+    image: '/images/products/iphone-14-purple.png',
+  },
+  {
+    madanhmuc: 4,
+    title: 'iPhone 13 Series',
+    tag: 'GIÁ TỐT QUỐC DÂN',
+    tagColor: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30',
+    desc: 'Chip A15 Bionic • Camera kép chéo • Bền bỉ',
+    fromPrice: '13.490.000 ₫',
+    image: '/images/products/iphone-13-starlight.png',
+  },
+];
 
 export default function StoreHomePage() {
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -67,15 +107,15 @@ export default function StoreHomePage() {
         <StoreBanner />
       </div>
 
-      {/* 2. Thanh Danh Mục Các Dòng iPhone */}
+      {/* 2. KHỐI KHÁM PHÁ CÁC DÒNG IPHONE (THIẾT KẾ CARD THẨM MỸ, BẮT MẮT) */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
               Khám Phá Các Dòng iPhone
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Chọn dòng máy để xem đầy đủ các phiên bản dung lượng và màu sắc
+              Chọn thế hệ iPhone yêu thích để xem đầy đủ phiên bản màu sắc & dung lượng
             </p>
           </div>
           <Link
@@ -87,31 +127,62 @@ export default function StoreHomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5">
-          {categories.map((c) => (
-            <Link
-              key={c.madanhmuc}
-              href={`/products?madanhmuc=${c.madanhmuc}`}
-              className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-slate-400 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-800 font-bold group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                  <Smartphone className="h-5 w-5" />
+        {/* 4 Cards thế hệ iPhone với hình ảnh studio trực quan */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {SERIES_SHOWCASE.map((item) => {
+            const cat = categories.find((c) => c.madanhmuc === item.madanhmuc);
+            const count = cat?.soluongsanpham ?? products.filter((p) => p.madanhmuc === item.madanhmuc).length;
+
+            return (
+              <Link
+                key={item.madanhmuc}
+                href={`/products?madanhmuc=${item.madanhmuc}`}
+                className="group relative flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm hover:border-slate-400 hover:shadow-xl transition-all duration-300"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`inline-block rounded-lg px-2.5 py-0.5 text-[10px] font-extrabold border uppercase tracking-wider ${item.tagColor}`}
+                    >
+                      {item.tag}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400">
+                      {count} phiên bản
+                    </span>
+                  </div>
+
+                  <h3 className="font-extrabold text-slate-900 text-lg mt-2 group-hover:text-sky-600 transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                    {item.desc}
+                  </p>
                 </div>
-                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
-                  {c.soluongsanpham ?? 0} máy
-                </span>
-              </div>
-              <div className="mt-3">
-                <div className="font-extrabold text-slate-900 text-sm group-hover:text-sky-600 transition-colors">
-                  {c.tendanhmuc}
+
+                {/* Ảnh studio điện thoại trong suốt */}
+                <div className="my-4 h-36 w-full flex items-center justify-center overflow-hidden rounded-2xl bg-slate-50/70 p-2">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="max-h-full max-w-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                  {c.mota || 'Chính hãng VN/A'}
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] text-slate-400">Giá chỉ từ</div>
+                    <div className="text-xs font-black text-rose-600">
+                      {item.fromPrice}
+                    </div>
+                  </div>
+                  <span className="flex items-center gap-1 text-xs font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                    <span>Xem ngay</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -199,36 +270,21 @@ export default function StoreHomePage() {
       {/* 5. Khối Sản phẩm bán chạy */}
       {bestSellers.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="rounded-3xl bg-slate-900 p-6 sm:p-8 text-white shadow-xl border border-slate-800">
-            <div className="flex flex-wrap items-center justify-between mb-6 gap-2">
-              <div>
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/20 text-rose-300 px-2.5 py-1 text-[11px] font-bold border border-rose-500/30">
-                  <Flame className="h-3.5 w-3.5 text-rose-400" />
-                  <span>SẢN PHẨM BÁN CHẠY</span>
-                </span>
-                <h3 className="text-2xl font-black mt-2">
-                  iPhone Được Mua Nhiều Nhất
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Các mẫu iPhone được khách hàng lựa chọn nhiều nhất trong kỳ
-                </p>
-              </div>
-              <Link
-                href="/products"
-                className="rounded-xl bg-white px-4 py-2 text-xs font-bold text-slate-950 hover:bg-slate-100 transition-colors flex items-center gap-1.5"
-              >
-                <span>Xem Tất Cả</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+          <div className="flex items-center gap-2 mb-6 pb-3 border-b border-slate-200">
+            <Flame className="h-5 w-5 text-rose-500" />
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Gợi Ý Mua Sắm Nổi Bật
+            </h2>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {bestSellers.map((p) => (
-                <div key={p.masanpham} className="text-slate-900">
-                  <ProductCard product={p} onAddedToCart={addToast} />
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {bestSellers.map((p) => (
+              <ProductCard
+                key={p.masanpham}
+                product={p}
+                onAddedToCart={addToast}
+              />
+            ))}
           </div>
         </section>
       )}

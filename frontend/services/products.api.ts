@@ -17,6 +17,7 @@ export interface ProductItem {
   giaban: number;
   mota?: string | null;
   hinhanh?: string | null;
+  hinhanhList?: string[];
   trangthai: 'DANG_BAN' | 'NGUNG_KINH_DOANH' | 'HET_HANG';
   madanhmuc: number;
   soluongton: number;
@@ -72,9 +73,10 @@ export interface UpdateStockPricePayload {
   hinhanh?: string;
 }
 
-const STORAGE_PRODUCTS_KEY = 'iphone_store_products_v1';
+const STORAGE_PRODUCTS_KEY = 'iphone_store_products_v4';
 
 const INITIAL_PRODUCTS: ProductItem[] = [
+  // --- DÒNG IPHONE 16 PRO MAX ---
   {
     masanpham: 1,
     sku: 'IP16PM-256-DES',
@@ -83,7 +85,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Sa Mạc',
     giaban: 34990000,
     mota: '[SKU: IP16PM-256-DES] Màn hình Super Retina XDR 6.9 inch, Chip A18 Pro, Camera 48MP Fusion, Zoom quang 5x.',
-    hinhanh: '/images/products/iphone-16-pro-max-desert.jpg',
+    hinhanh: '/images/products/iphone-16-pro-max-desert.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pro-max-desert.png',
+      '/images/products/gallery/iphone-16-pro-angle.png',
+      '/images/products/gallery/iphone-16-pro-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 25,
@@ -101,7 +108,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Tự Nhiên',
     giaban: 40990000,
     mota: '[SKU: IP16PM-512-NAT] Màn hình Super Retina XDR 6.9 inch, Chip A18 Pro, bộ nhớ 512GB quay ProRes 4K 120fps.',
-    hinhanh: '/images/products/iphone-16-pro-max-natural.jpg',
+    hinhanh: '/images/products/iphone-16-pro-max-natural.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pro-max-natural.png',
+      '/images/products/gallery/iphone-16-pro-angle.png',
+      '/images/products/gallery/iphone-16-pro-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 15,
@@ -119,7 +131,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Đen',
     giaban: 46990000,
     mota: '[SKU: IP16PM-1TB-BLK] Phiên bản cao cấp nhất 1TB, khung Titan cấp 5 siêu bền nhẹ.',
-    hinhanh: '/images/products/iphone-16-pro-max-black.jpg',
+    hinhanh: '/images/products/iphone-16-pro-max-black.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pro-max-black.png',
+      '/images/products/gallery/iphone-16-pro-angle.png',
+      '/images/products/gallery/iphone-16-pro-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 4,
@@ -129,6 +146,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     DANH_MUC: DEFAULT_CATEGORIES[0],
     TON_KHO: [{ matonkho: 3, masanpham: 3, soluong: 4, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
+
+  // --- DÒNG IPHONE 16 PRO ---
   {
     masanpham: 4,
     sku: 'IP16P-128-WHT',
@@ -137,7 +156,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Trắng',
     giaban: 28990000,
     mota: '[SKU: IP16P-128-WHT] Màn hình 6.3 inch ProMotion 120Hz, Chip A18 Pro, nút điều khiển Camera Control.',
-    hinhanh: '/images/products/iphone-16-pro-white.jpg',
+    hinhanh: '/images/products/iphone-16-pro-white.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pro-white.png',
+      '/images/products/gallery/iphone-16-pro-angle.png',
+      '/images/products/gallery/iphone-16-pro-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 20,
@@ -148,6 +172,77 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     TON_KHO: [{ matonkho: 4, masanpham: 4, soluong: 20, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
   {
+    masanpham: 13,
+    sku: 'IP16P-256-DES',
+    tensanpham: 'iPhone 16 Pro',
+    dungluong: '256GB',
+    mausac: 'Titan Sa Mạc',
+    giaban: 31990000,
+    mota: '[SKU: IP16P-256-DES] Màn hình 6.3 inch, Chip A18 Pro, dung lượng 256GB màu Sa Mạc mới nhất.',
+    hinhanh: '/images/products/iphone-16-pro-max-desert.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pro-max-desert.png',
+      '/images/products/gallery/iphone-16-pro-angle.png',
+      '/images/products/gallery/iphone-16-pro-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 1,
+    soluongton: 16,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[0],
+    TON_KHO: [{ matonkho: 13, masanpham: 13, soluong: 16, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+  {
+    masanpham: 14,
+    sku: 'IP16P-512-NAT',
+    tensanpham: 'iPhone 16 Pro',
+    dungluong: '512GB',
+    mausac: 'Titan Tự Nhiên',
+    giaban: 37990000,
+    mota: '[SKU: IP16P-512-NAT] Phiên bản 512GB màu Titan Tự Nhiên, màn hình viền mỏng kỷ lục.',
+    hinhanh: '/images/products/iphone-16-pro-max-natural.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pro-max-natural.png',
+      '/images/products/gallery/iphone-16-pro-angle.png',
+      '/images/products/gallery/iphone-16-pro-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 1,
+    soluongton: 10,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[0],
+    TON_KHO: [{ matonkho: 14, masanpham: 14, soluong: 10, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+  {
+    masanpham: 15,
+    sku: 'IP16P-1TB-BLK',
+    tensanpham: 'iPhone 16 Pro',
+    dungluong: '1TB',
+    mausac: 'Titan Đen',
+    giaban: 43990000,
+    mota: '[SKU: IP16P-1TB-BLK] Bộ nhớ cực đại 1TB, khung Titan Đen sang trọng.',
+    hinhanh: '/images/products/iphone-16-pro-max-black.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pro-max-black.png',
+      '/images/products/gallery/iphone-16-pro-angle.png',
+      '/images/products/gallery/iphone-16-pro-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 1,
+    soluongton: 5,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[0],
+    TON_KHO: [{ matonkho: 15, masanpham: 15, soluong: 5, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+
+  // --- DÒNG IPHONE 16 PLUS ---
+  {
     masanpham: 5,
     sku: 'IP16PL-256-ULT',
     tensanpham: 'iPhone 16 Plus',
@@ -155,7 +250,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Xanh Lưu Ly',
     giaban: 25990000,
     mota: '[SKU: IP16PL-256-ULT] Màn hình lớn 6.7 inch, pin siêu trâu, Chip A18 hỗ trợ Apple Intelligence.',
-    hinhanh: '/images/products/iphone-16-plus-ultramarine.jpg',
+    hinhanh: '/images/products/iphone-16-plus-ultramarine.png',
+    hinhanhList: [
+      '/images/products/iphone-16-plus-ultramarine.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 18,
@@ -166,14 +266,44 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     TON_KHO: [{ matonkho: 5, masanpham: 5, soluong: 18, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
   {
+    masanpham: 16,
+    sku: 'IP16PL-128-PNK',
+    tensanpham: 'iPhone 16 Plus',
+    dungluong: '128GB',
+    mausac: 'Hồng',
+    giaban: 22990000,
+    mota: '[SKU: IP16PL-128-PNK] Màn hình lớn 6.7 inch phiên bản 128GB màu Hồng pastel trẻ trung.',
+    hinhanh: '/images/products/iphone-16-pink.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pink.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 1,
+    soluongton: 12,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[0],
+    TON_KHO: [{ matonkho: 16, masanpham: 16, soluong: 12, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+
+  // --- DÒNG IPHONE 16 TIÊU CHUẨN ---
+  {
     masanpham: 6,
     sku: 'IP16-128-PNK',
     tensanpham: 'iPhone 16',
     dungluong: '128GB',
     mausac: 'Hồng',
-    giaban: 22990000,
+    giaban: 21990000,
     mota: '[SKU: IP16-128-PNK] Thiết kế camera dọc mới, nút Action Button và Camera Control hiện đại.',
-    hinhanh: '/images/products/iphone-16-pink.jpg',
+    hinhanh: '/images/products/iphone-16-pink.png',
+    hinhanhList: [
+      '/images/products/iphone-16-pink.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 30,
@@ -184,6 +314,31 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     TON_KHO: [{ matonkho: 6, masanpham: 6, soluong: 30, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
   {
+    masanpham: 17,
+    sku: 'IP16-256-ULT',
+    tensanpham: 'iPhone 16',
+    dungluong: '256GB',
+    mausac: 'Xanh Lưu Ly',
+    giaban: 24990000,
+    mota: '[SKU: IP16-256-ULT] Phiên bản 256GB màu Xanh Lưu Ly sống động, chip A18 thế hệ mới.',
+    hinhanh: '/images/products/iphone-16-plus-ultramarine.png',
+    hinhanhList: [
+      '/images/products/iphone-16-plus-ultramarine.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 1,
+    soluongton: 15,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[0],
+    TON_KHO: [{ matonkho: 17, masanpham: 17, soluong: 15, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+
+  // --- DÒNG IPHONE 15 PRO MAX ---
+  {
     masanpham: 7,
     sku: 'IP15PM-256-NAT',
     tensanpham: 'iPhone 15 Pro Max',
@@ -191,7 +346,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Tự Nhiên',
     giaban: 29490000,
     mota: '[SKU: IP15PM-256-NAT] Khung viền Titan, chip A17 Pro 3nm, camera tiềm vọng 5x, cổng USB-C 3.',
-    hinhanh: '/images/products/iphone-15-pro-max-natural.jpg',
+    hinhanh: '/images/products/iphone-15-pro-max-natural.png',
+    hinhanhList: [
+      '/images/products/iphone-15-pro-max-natural.png',
+      '/images/products/gallery/iphone-15-pro-angle.png',
+      '/images/products/gallery/iphone-15-pro-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 2,
     soluongton: 12,
@@ -209,7 +369,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Xanh',
     giaban: 34990000,
     mota: '[SKU: IP15PM-512-BLU] Phiên bản 512GB màu Titan Xanh sang trọng, hiệu năng đỉnh cao.',
-    hinhanh: '/images/products/iphone-15-pro-max-blue.jpg',
+    hinhanh: '/images/products/iphone-15-pro-max-blue.png',
+    hinhanhList: [
+      '/images/products/iphone-15-pro-max-blue.png',
+      '/images/products/gallery/iphone-15-pro-angle.png',
+      '/images/products/gallery/iphone-15-pro-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 2,
     soluongton: 3,
@@ -219,6 +384,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     DANH_MUC: DEFAULT_CATEGORIES[1],
     TON_KHO: [{ matonkho: 8, masanpham: 8, soluong: 3, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
+
+  // --- DÒNG IPHONE 15 TIÊU CHUẨN ---
   {
     masanpham: 9,
     sku: 'IP15-128-PNK',
@@ -227,7 +394,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Hồng',
     giaban: 19490000,
     mota: '[SKU: IP15-128-PNK] Camera chính 48MP sắc nét, Dynamic Island, cổng sạc USB-C tiện lợi.',
-    hinhanh: '/images/products/iphone-15-pink.jpg',
+    hinhanh: '/images/products/iphone-15-pink.png',
+    hinhanhList: [
+      '/images/products/iphone-15-pink.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 2,
     soluongton: 22,
@@ -238,6 +410,31 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     TON_KHO: [{ matonkho: 9, masanpham: 9, soluong: 22, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
   {
+    masanpham: 18,
+    sku: 'IP15-256-BLU',
+    tensanpham: 'iPhone 15',
+    dungluong: '256GB',
+    mausac: 'Xanh Dương',
+    giaban: 22490000,
+    mota: '[SKU: IP15-256-BLU] Phiên bản 256GB màu Xanh Dương trang nhã, cổng USB-C tiện lợi.',
+    hinhanh: '/images/products/iphone-15-pink.png',
+    hinhanhList: [
+      '/images/products/iphone-15-pink.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 2,
+    soluongton: 14,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[1],
+    TON_KHO: [{ matonkho: 18, masanpham: 18, soluong: 14, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+
+  // --- DÒNG IPHONE 14 ---
+  {
     masanpham: 10,
     sku: 'IP14-128-PUR',
     tensanpham: 'iPhone 14',
@@ -245,7 +442,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Tím',
     giaban: 15990000,
     mota: '[SKU: IP14-128-PUR] Thiết kế nhỏ gọn 6.1 inch, camera chụp đêm ấn tượng.',
-    hinhanh: '/images/products/iphone-14-purple.jpg',
+    hinhanh: '/images/products/iphone-14-purple.png',
+    hinhanhList: [
+      '/images/products/iphone-14-purple.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 3,
     soluongton: 16,
@@ -256,6 +458,31 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     TON_KHO: [{ matonkho: 10, masanpham: 10, soluong: 16, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
   {
+    masanpham: 19,
+    sku: 'IP14-256-STA',
+    tensanpham: 'iPhone 14',
+    dungluong: '256GB',
+    mausac: 'Trắng Ánh Sao',
+    giaban: 18990000,
+    mota: '[SKU: IP14-256-STA] Phiên bản 256GB màu Trắng Ánh Sao, màn hình OLED Super Retina XDR.',
+    hinhanh: '/images/products/iphone-14-purple.png',
+    hinhanhList: [
+      '/images/products/iphone-14-purple.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 3,
+    soluongton: 8,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[2],
+    TON_KHO: [{ matonkho: 19, masanpham: 19, soluong: 8, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+
+  // --- DÒNG IPHONE 13 ---
+  {
     masanpham: 11,
     sku: 'IP13-128-STA',
     tensanpham: 'iPhone 13',
@@ -263,7 +490,12 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Trắng Starlight',
     giaban: 13490000,
     mota: '[SKU: IP13-128-STA] Mẫu iPhone bán chạy nhất phân khúc tầm trung, hiệu năng mượt mà.',
-    hinhanh: '/images/products/iphone-13-starlight.jpg',
+    hinhanh: '/images/products/iphone-13-starlight.png',
+    hinhanhList: [
+      '/images/products/iphone-13-starlight.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
     trangthai: 'DANG_BAN',
     madanhmuc: 4,
     soluongton: 25,
@@ -274,6 +506,31 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     TON_KHO: [{ matonkho: 11, masanpham: 11, soluong: 25, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
   },
   {
+    masanpham: 20,
+    sku: 'IP13-256-MID',
+    tensanpham: 'iPhone 13',
+    dungluong: '256GB',
+    mausac: 'Đen Midnight',
+    giaban: 15990000,
+    mota: '[SKU: IP13-256-MID] Dung lượng 256GB thoải mái lưu trữ ảnh và video, chip A15 Bionic.',
+    hinhanh: '/images/products/iphone-13-starlight.png',
+    hinhanhList: [
+      '/images/products/iphone-13-starlight.png',
+      '/images/products/gallery/iphone-16-angle.png',
+      '/images/products/gallery/iphone-16-back.png',
+    ],
+    trangthai: 'DANG_BAN',
+    madanhmuc: 4,
+    soluongton: 10,
+    ngaycapnhatkho: '2026-11-10T08:00:00.000Z',
+    sodonhangdaco: 0,
+    cothemua: true,
+    DANH_MUC: DEFAULT_CATEGORIES[3],
+    TON_KHO: [{ matonkho: 20, masanpham: 20, soluong: 10, ngaycapnhat: '2026-11-10T08:00:00.000Z' }],
+  },
+
+  // --- SẢN PHẨM NGỪNG KINH DOANH (SOFT DELETE TEST) ---
+  {
     masanpham: 12,
     sku: 'IP13PM-128-ALP',
     tensanpham: 'iPhone 13 Pro Max',
@@ -281,7 +538,8 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Xanh Alpine',
     giaban: 21990000,
     mota: '[SKU: IP13PM-128-ALP] Sản phẩm đã ngừng kinh doanh (Soft Delete) - ẩn khỏi trang khách hàng nhưng bảo toàn lịch sử đơn hàng.',
-    hinhanh: '/images/products/iphone-13-pro-max-green.jpg',
+    hinhanh: '/images/products/iphone-13-pro-max-green.png',
+    hinhanhList: ['/images/products/iphone-13-pro-max-green.png'],
     trangthai: 'NGUNG_KINH_DOANH',
     madanhmuc: 4,
     soluongton: 0,
@@ -302,20 +560,10 @@ function getLocalProducts(): ProductItem[] {
   }
   try {
     const list: ProductItem[] = JSON.parse(raw);
-    // Tự động nâng cấp đường dẫn ảnh sang ảnh local chính thức nếu còn ảnh cũ unsplash
-    let needUpdate = false;
-    const initialMap = new Map(INITIAL_PRODUCTS.map((p) => [p.masanpham, p.hinhanh]));
-    const migrated = list.map((item) => {
-      const properImage = initialMap.get(item.masanpham);
-      if (properImage && item.hinhanh?.includes('unsplash.com')) {
-        needUpdate = true;
-        return { ...item, hinhanh: properImage };
-      }
-      return item;
-    });
-    if (needUpdate) {
-      localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(migrated));
-      return migrated;
+    // Luôn nâng cấp danh sách sản phẩm nếu danh sách cũ ít hơn hoặc còn dính ảnh cũ
+    if (list.length < INITIAL_PRODUCTS.length || list.some((p) => p.hinhanh?.includes('unsplash') || p.hinhanh?.endsWith('.jpg'))) {
+      localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(INITIAL_PRODUCTS));
+      return INITIAL_PRODUCTS;
     }
     return list;
   } catch {

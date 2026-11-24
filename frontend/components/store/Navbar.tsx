@@ -2,19 +2,25 @@
 
 import {
   ChevronDown,
+  Globe,
   LogIn,
   LogOut,
+  Moon,
   Search,
   ShieldAlert,
   ShoppingBag,
+  Sun,
   User,
   X,
 } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
-import { authApi, CustomerProfile } from '../../services/auth.api';
+import {
+  authApi,
+  CustomerProfile,
+  openCustomerAuthModal,
+} from '../../services/auth.api';
 import { ProductItem, productsApi } from '../../services/products.api';
 import { useCartStore } from '../../stores/cart.store';
 import AuthModal from './AuthModal';
@@ -24,6 +30,11 @@ export default function StoreNavbar() {
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Theme state: 'light' | 'dark'
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  // Language state: 'VI' | 'EN'
+  const [lang, setLang] = useState<'VI' | 'EN'>('VI');
 
   // States tìm kiếm gợi ý tức thì (Live Autocomplete Search)
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -40,9 +51,62 @@ export default function StoreNavbar() {
     setCartCount(total);
   }, [items]);
 
+  // Khởi tạo Theme & Lang từ LocalStorage
   useEffect(() => {
-    setCustomer(authApi.getCurrentCustomer());
+    const curCustomer = authApi.getCurrentCustomer();
+    setCustomer(curCustomer);
+
+    // Lắng nghe sự kiện đăng nhập / đăng xuất
+    const handleAuthChange = () => {
+      setCustomer(authApi.getCurrentCustomer());
+    };
+    window.addEventListener('auth-change', handleAuthChange);
+
+    // Lắng nghe mở modal đăng nhập từ bên ngoài
+    const handleOpenAuth = () => {
+      setIsAuthOpen(true);
+    };
+    window.addEventListener('open-auth-modal', handleOpenAuth);
+
+    // Theme check
+    const savedTheme = localStorage.getItem('istore_theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+
+    // Lang check
+    const savedLang = localStorage.getItem('istore_lang') as 'VI' | 'EN' | null;
+    if (savedLang) setLang(savedLang);
+
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+      window.removeEventListener('open-auth-modal', handleOpenAuth);
+    };
   }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('istore_theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const toggleLang = () => {
+    const nextLang = lang === 'VI' ? 'EN' : 'VI';
+    setLang(nextLang);
+    localStorage.setItem('istore_lang', nextLang);
+  };
 
   // Xử lý tìm kiếm gợi ý tức thời khi người dùng gõ phím
   useEffect(() => {
@@ -63,7 +127,7 @@ export default function StoreNavbar() {
       } finally {
         setIsSearching(false);
       }
-    }, 150); // debounce 150ms cực nhạy
+    }, 150);
 
     return () => clearTimeout(timer);
   }, [searchKeyword]);
@@ -104,14 +168,27 @@ export default function StoreNavbar() {
     setUserMenuOpen(false);
   };
 
+  // Kiểm tra đăng nhập khi click vào nút Giỏ Hàng
+  const handleCartClick = (e: React.MouseEvent) => {
+    if (!customer) {
+      e.preventDefault();
+      openCustomerAuthModal(
+        lang === 'VI'
+          ? 'Vui lòng đăng nhập tài khoản để xem và quản lý giỏ hàng của bạn!'
+          : 'Please sign in to view and manage your shopping cart!',
+      );
+      setIsAuthOpen(true);
+    }
+  };
+
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-900/95 backdrop-blur text-white shadow-sm">
+      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-900/95 backdrop-blur text-white shadow-sm transition-colors duration-200">
         {/* Main Navbar */}
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 gap-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 gap-3 sm:gap-4">
           {/* Logo IStore */}
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 border border-slate-700/80 group-hover:border-blue-500 transition-all shadow-sm">
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 shrink-0 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 border border-slate-700/80 group-hover:border-sky-500 transition-all shadow-sm">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15.2 3.5C15.9 2.5 17 1.9 18.2 1.8C18.3 3.1 17.8 4.3 17 5.2C16.2 6.1 15 6.7 13.8 6.6C13.7 5.3 14.3 4.2 15.2 3.5Z" fill="#38BDF8"/>
                 <path d="M19.3 10.3C19.2 8.3 20.8 7.2 20.9 7.1C19.9 5.8 18.4 5.6 17.9 5.6C16.6 5.5 15.4 6.3 14.8 6.3C14.1 6.3 13.1 5.6 12 5.6C10.6 5.6 9.3 6.4 8.6 7.6C7.2 10 8.3 13.7 9.7 15.7C10.4 16.7 11.2 17.7 12.3 17.6C13.4 17.5 13.8 16.9 15 16.9C16.2 16.9 16.6 17.6 17.8 17.6C18.9 17.6 19.6 16.7 20.3 15.7C21.1 14.5 21.4 13.4 21.5 13.3C21.4 13.2 19.4 12.4 19.3 10.3Z" fill="#F8FAFC"/>
@@ -139,7 +216,7 @@ export default function StoreNavbar() {
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                placeholder="Tìm iPhone 16 Pro Max, Titan Sa Mạc, 256GB..."
+                placeholder={lang === 'VI' ? 'Tìm iPhone 16 Pro Max, Titan Sa Mạc, 256GB...' : 'Search iPhone 16 Pro, Desert Titanium...'}
                 className="w-full rounded-xl border border-slate-700 bg-slate-800/90 pl-10 pr-9 py-2 text-xs text-white placeholder-slate-400 focus:border-sky-500 focus:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
               />
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -158,8 +235,8 @@ export default function StoreNavbar() {
             {showSuggestions && searchKeyword.trim().length > 0 && (
               <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-slate-700 bg-slate-800/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
                 <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 border-b border-slate-700/60 flex items-center justify-between">
-                  <span>Gợi ý sản phẩm ({searchResults.length})</span>
-                  {isSearching && <span className="text-sky-400 animate-pulse">Đang tìm...</span>}
+                  <span>{lang === 'VI' ? 'Gợi ý sản phẩm' : 'Product suggestions'} ({searchResults.length})</span>
+                  {isSearching && <span className="text-sky-400 animate-pulse">{lang === 'VI' ? 'Đang tìm...' : 'Searching...'}</span>}
                 </div>
 
                 {searchResults.length > 0 ? (
@@ -171,7 +248,7 @@ export default function StoreNavbar() {
                         onClick={() => handleSelectProduct(item.masanpham)}
                         className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-700/70 text-left transition-colors group"
                       >
-                        <div className="h-10 w-10 shrink-0 rounded-lg bg-white p-1 flex items-center justify-center overflow-hidden">
+                        <div className="h-10 w-10 shrink-0 rounded-lg bg-slate-900/60 p-1 flex items-center justify-center overflow-hidden">
                           {item.hinhanh ? (
                             <img
                               src={item.hinhanh}
@@ -187,7 +264,7 @@ export default function StoreNavbar() {
                             {item.tensanpham}
                           </div>
                           <div className="text-[11px] text-slate-400 truncate">
-                            {item.dungluong} • Màu {item.mausac}
+                            {item.dungluong} • {item.mausac}
                           </div>
                         </div>
                         <div className="text-right shrink-0">
@@ -195,7 +272,7 @@ export default function StoreNavbar() {
                             {item.giaban.toLocaleString('vi-VN')} ₫
                           </div>
                           <div className="text-[10px] text-emerald-400">
-                            {item.soluongton > 0 ? `Còn ${item.soluongton} máy` : 'Hết hàng'}
+                            {item.soluongton > 0 ? `Còn ${item.soluongton}` : 'Hết hàng'}
                           </div>
                         </div>
                       </button>
@@ -207,37 +284,60 @@ export default function StoreNavbar() {
                         onClick={handleSearchSubmit}
                         className="w-full rounded-lg bg-slate-700/60 py-2 text-center text-xs font-bold text-sky-400 hover:bg-slate-700 transition-colors"
                       >
-                        Xem tất cả kết quả cho &quot;{searchKeyword}&quot; ➔
+                        {lang === 'VI' ? `Xem tất cả cho "${searchKeyword}" ➔` : `View all results for "${searchKeyword}" ➔`}
                       </button>
                     </div>
                   </div>
                 ) : !isSearching ? (
                   <div className="p-4 text-center text-xs text-slate-400">
-                    Không tìm thấy iPhone nào khớp với &quot;{searchKeyword}&quot;
+                    {lang === 'VI' ? `Không tìm thấy iPhone nào khớp với "${searchKeyword}"` : `No iPhone matched "${searchKeyword}"`}
                   </div>
                 ) : null}
               </div>
             )}
           </div>
 
-          {/* Action buttons (Sản phẩm, Giỏ hàng, Tài khoản) */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Action buttons (Sáng/Tối, Ngôn ngữ, Sản phẩm, Giỏ hàng, Tài khoản) */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            {/* Nút Toggle Theme Sáng / Tối */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:border-sky-500 transition-all"
+              title={theme === 'dark' ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-sky-400" />}
+            </button>
+
+            {/* Nút Toggle Ngôn ngữ EN / VI */}
+            <button
+              type="button"
+              onClick={toggleLang}
+              className="flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-xs font-bold text-slate-200 hover:border-sky-500 hover:text-white transition-all"
+              title="Đổi ngôn ngữ (VI / EN)"
+            >
+              <Globe className="h-3.5 w-3.5 text-sky-400" />
+              <span>{lang}</span>
+            </button>
+
             {/* Link danh mục sản phẩm */}
             <Link
               href="/products"
               className="hidden lg:flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-colors"
             >
-              <span>Sản Phẩm</span>
+              <span>{lang === 'VI' ? 'Sản Phẩm' : 'Products'}</span>
             </Link>
 
-            {/* Giỏ hàng với badge */}
+            {/* Giỏ hàng với badge (Chặn nếu chưa đăng nhập) */}
             <Link
               href="/cart"
-              className="relative flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-3.5 py-2 text-xs font-bold text-white hover:border-sky-500 hover:bg-slate-800 transition-all shadow-sm"
+              onClick={handleCartClick}
+              className="relative flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-bold text-white hover:border-sky-500 hover:bg-slate-800 transition-all shadow-sm"
+              title={customer ? 'Xem giỏ hàng' : 'Đăng nhập để xem giỏ hàng'}
             >
               <ShoppingBag className="h-4 w-4 text-sky-400" />
-              <span className="hidden sm:inline">Giỏ hàng</span>
-              {cartCount > 0 && (
+              <span className="hidden sm:inline">{lang === 'VI' ? 'Giỏ hàng' : 'Cart'}</span>
+              {customer && cartCount > 0 && (
                 <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-extrabold text-white">
                   {cartCount}
                 </span>
@@ -262,7 +362,7 @@ export default function StoreNavbar() {
                       <div className="font-bold text-white">{customer.hoten}</div>
                       <div className="text-[11px] text-slate-400 truncate">{customer.email}</div>
                       <div className="mt-1 inline-block rounded bg-sky-500/20 px-2 py-0.5 text-[10px] font-semibold text-sky-300">
-                        Khách hàng thành viên
+                        {lang === 'VI' ? 'Khách hàng thành viên' : 'Member Customer'}
                       </div>
                     </div>
 
@@ -271,7 +371,7 @@ export default function StoreNavbar() {
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-slate-200 hover:bg-slate-700 transition-colors"
                     >
-                      <span>Tiến hành Đặt hàng (Checkout)</span>
+                      <span>{lang === 'VI' ? 'Đơn hàng & Thanh toán' : 'Order & Payment'}</span>
                     </Link>
 
                     <button
@@ -279,7 +379,7 @@ export default function StoreNavbar() {
                       className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left font-medium text-rose-400 hover:bg-rose-500/10 transition-colors"
                     >
                       <LogOut className="h-3.5 w-3.5" />
-                      <span>Đăng xuất</span>
+                      <span>{lang === 'VI' ? 'Đăng xuất' : 'Sign out'}</span>
                     </button>
                   </div>
                 )}
@@ -287,17 +387,17 @@ export default function StoreNavbar() {
             ) : (
               <button
                 onClick={() => setIsAuthOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/30 hover:bg-sky-500 transition-all"
+                className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/30 hover:bg-sky-500 transition-all shrink-0"
               >
                 <LogIn className="h-3.5 w-3.5" />
-                <span>Đăng Nhập</span>
+                <span>{lang === 'VI' ? 'Đăng Nhập' : 'Sign In'}</span>
               </button>
             )}
 
-            {/* Chuyển sang giao diện quản lý nhân viên (Mục A4 của TV2 / TV4 / TV5) */}
+            {/* Chuyển sang giao diện nhân viên */}
             <Link
               href="/staff/products"
-              className="rounded-xl border border-slate-700 bg-slate-800/40 px-3 py-2 text-[11px] font-semibold text-slate-300 hover:border-slate-500 hover:text-white transition-all hidden md:flex items-center gap-1.5"
+              className="rounded-xl border border-slate-700 bg-slate-800/40 px-3 py-2 text-[11px] font-semibold text-slate-300 hover:border-slate-500 hover:text-white transition-all hidden xl:flex items-center gap-1.5"
               title="Chuyển tới giao diện dành cho nhân viên bán hàng"
             >
               <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
@@ -313,7 +413,7 @@ export default function StoreNavbar() {
               href="/products"
               className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-800 hover:text-white transition-colors"
             >
-              Tất cả iPhone
+              {lang === 'VI' ? 'Tất cả iPhone' : 'All iPhones'}
             </Link>
             <span className="text-slate-700">•</span>
             <Link

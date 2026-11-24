@@ -3,19 +3,28 @@
 import {
   ArrowLeft,
   ArrowRight,
+  Lock,
+  LogIn,
   ShoppingBag,
   Trash2,
   Truck,
+  UserCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import StoreToast, { ToastMessage } from '../../../components/store/StoreToast';
+import {
+  authApi,
+  CustomerProfile,
+  openCustomerAuthModal,
+} from '../../../services/auth.api';
 import { useCartStore } from '../../../stores/cart.store';
 
 export default function StoreCartPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [customer, setCustomer] = useState<CustomerProfile | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const items = useCartStore((state) => state.items);
@@ -27,6 +36,13 @@ export default function StoreCartPage() {
 
   useEffect(() => {
     setMounted(true);
+    setCustomer(authApi.getCurrentCustomer());
+
+    const handleAuthChange = () => {
+      setCustomer(authApi.getCurrentCustomer());
+    };
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
   }, []);
 
   const addToast = (message: string, isSuccess: boolean) => {
@@ -44,7 +60,12 @@ export default function StoreCartPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleUpdateQty = (masanpham: number, currentQty: number, delta: number, tonkho: number) => {
+  const handleUpdateQty = (
+    masanpham: number,
+    currentQty: number,
+    delta: number,
+    tonkho: number,
+  ) => {
     const nextQty = currentQty + delta;
     if (nextQty > tonkho) {
       addToast(
@@ -71,10 +92,61 @@ export default function StoreCartPage() {
     }
   };
 
+  const handleProceedOrder = () => {
+    if (!customer) {
+      openCustomerAuthModal('Vui lòng đăng nhập để tiến hành đặt hàng!');
+      return;
+    }
+    router.push('/checkout');
+  };
+
   if (!mounted) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center text-xs text-slate-500">
         Đang nạp dữ liệu giỏ hàng...
+      </div>
+    );
+  }
+
+  // NGHIỆP VỤ BẮT BUỘC: NẾU CHƯA ĐĂNG NHẬP -> HIỂN THỊ YÊU CẦU ĐĂNG NHẬP
+  if (!customer) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-14 text-center space-y-6 shadow-sm">
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-sky-50 text-sky-600 mx-auto shadow-inner border border-sky-100">
+            <Lock className="h-9 w-9 text-sky-600" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Yêu Cầu Đăng Nhập Tài Khoản
+            </h2>
+            <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+              Theo quy định mua sắm tại iStore, khách hàng cần đăng nhập tài khoản để xem, quản lý giỏ hàng và thực hiện quy trình đặt hàng an toàn.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => openCustomerAuthModal('Vui lòng đăng nhập để xem và quản lý giỏ hàng!')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3.5 text-xs font-bold text-white shadow-lg hover:bg-slate-800 transition-all"
+            >
+              <LogIn className="h-4 w-4" />
+              <span>Đăng Nhập Hoặc Đăng Ký Ngay</span>
+            </button>
+
+            <Link
+              href="/products"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-5 py-3.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all"
+            >
+              <span>Xem Danh Sách iPhone</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+        <StoreToast toasts={toasts} onDismiss={removeToast} />
       </div>
     );
   }
@@ -149,13 +221,13 @@ export default function StoreCartPage() {
                     <div className="flex items-center gap-4 flex-1">
                       <Link
                         href={`/products/${item.masanpham}`}
-                        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center"
+                        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-50 p-2 flex items-center justify-center border border-slate-100 hover:border-slate-300 transition-all"
                       >
                         {item.hinhanh ? (
                           <img
                             src={item.hinhanh}
                             alt={item.tensanpham}
-                            className="h-full w-full object-contain"
+                            className="h-full w-full object-contain filter drop-shadow-sm"
                           />
                         ) : (
                           <span className="text-xs text-slate-300">iPhone</span>
@@ -266,6 +338,11 @@ export default function StoreCartPage() {
 
               <div className="space-y-2.5 text-xs">
                 <div className="flex justify-between text-slate-600">
+                  <span>Khách hàng đặt:</span>
+                  <span className="font-bold text-slate-900">{customer.hoten}</span>
+                </div>
+
+                <div className="flex justify-between text-slate-600">
                   <span>Số lượng sản phẩm:</span>
                   <span className="font-bold text-slate-900">{totalCount} máy</span>
                 </div>
@@ -301,10 +378,10 @@ export default function StoreCartPage() {
               <div className="pt-2 space-y-2.5">
                 <button
                   type="button"
-                  onClick={() => router.push('/checkout')}
+                  onClick={handleProceedOrder}
                   className="w-full rounded-xl bg-slate-900 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
                 >
-                  <span>Tiến Hành Đặt Hàng (Checkout)</span>
+                  <span>Tiến Hành Đặt Hàng & Thanh Toán</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
 
