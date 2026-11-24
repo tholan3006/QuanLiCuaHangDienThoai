@@ -1,5 +1,13 @@
 'use client';
 
+import {
+  ArrowUpDown,
+  Check,
+  Package,
+  RotateCcw,
+  Search,
+  SlidersHorizontal,
+} from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import ProductCard from '../../../components/store/ProductCard';
@@ -14,7 +22,7 @@ function StoreProductsContent() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // States bộ lọc
+  // States bộ lọc - Hỗ trợ Live Search tức thì khi gõ
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(
     searchParams.get('madanhmuc') || '',
@@ -90,32 +98,34 @@ function StoreProductsContent() {
     setSortBy('newest');
   };
 
-  const loadProducts = useCallback(async () => {
+  // Tải danh mục một lần khi mount
+  useEffect(() => {
+    categoriesApi.getAll(false).then(setCategories).catch(console.error);
+  }, []);
+
+  // Lọc sản phẩm realtime: gọi ngay khi search, category, price thay đổi (Debounce 200ms cho search)
+  useEffect(() => {
     setLoading(true);
-    try {
-      const [cats, prods] = await Promise.all([
-        categoriesApi.getAll(false),
-        productsApi.getForStore({
+    const timer = setTimeout(async () => {
+      try {
+        const prods = await productsApi.getForStore({
           search: search.trim() || undefined,
           madanhmuc: selectedCategory ? Number(selectedCategory) : undefined,
           dungluong: selectedStorage || undefined,
           minPrice: minPrice ? Number(minPrice) : undefined,
           maxPrice: maxPrice ? Number(maxPrice) : undefined,
           sortBy,
-        }),
-      ]);
-      setCategories(cats);
-      setProducts(prods.data);
-    } catch (err) {
-      console.error('Lỗi tải danh sách sản phẩm:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [search, selectedCategory, selectedStorage, minPrice, maxPrice, sortBy]);
+        });
+        setProducts(prods.data);
+      } catch (err) {
+        console.error('Lỗi lọc sản phẩm:', err);
+      } finally {
+        setLoading(false);
+      }
+    }, 200);
 
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    return () => clearTimeout(timer);
+  }, [search, selectedCategory, selectedStorage, minPrice, maxPrice, sortBy]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-6">
@@ -128,7 +138,7 @@ function StoreProductsContent() {
           Danh Sách & Bộ Lọc Sản Phẩm iPhone
         </h1>
         <p className="text-xs text-slate-500 mt-1">
-          Các sản phẩm ngừng kinh doanh (Soft Delete) được tự động ẩn khỏi trang này để bảo đảm khách hàng chỉ mua hàng còn kinh doanh.
+          Hệ thống phân phối các dòng iPhone mới nhất, hỗ trợ lọc tức thì theo tên máy, dung lượng và khoảng giá.
         </p>
       </div>
 
@@ -136,12 +146,12 @@ function StoreProductsContent() {
       <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🔍</span>
-            <span className="text-sm font-extrabold text-slate-800">Bộ Lọc Tìm Kiếm</span>
+            <SlidersHorizontal className="h-4 w-4 text-sky-600" />
+            <span className="text-sm font-extrabold text-slate-800">Bộ Lọc Tìm Kiếm Tức Thì</span>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 border border-blue-200">
+            <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700 border border-sky-200">
               Tìm thấy {products.length} sản phẩm
             </span>
 
@@ -149,29 +159,32 @@ function StoreProductsContent() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="text-xs font-bold text-red-600 hover:text-red-700 hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 transition-colors"
               >
-                <span>✕</span>
+                <RotateCcw className="h-3.5 w-3.5" />
                 <span>Đặt lại bộ lọc</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Hàng 1: Tìm kiếm, Dòng máy, Dung lượng, Sắp xếp */}
+        {/* Hàng 1: Tìm kiếm tức thì, Dòng máy, Dung lượng, Sắp xếp */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {/* Ô tìm kiếm */}
+          {/* Ô tìm kiếm tức thì */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
-              Tìm theo tên / màu sắc / SKU
+              Gõ tên máy / màu sắc / SKU (Lọc tức thì)
             </label>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="VD: Pro Max, Sa Mạc, IP16..."
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="VD: 16 Pro, Sa Mạc, IP16..."
+                className="w-full rounded-xl border border-slate-300 pl-9 pr-3.5 py-2 text-xs focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600 transition-all"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            </div>
           </div>
 
           {/* Dòng máy (Danh mục) */}
@@ -182,7 +195,7 @@ function StoreProductsContent() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
             >
               <option value="">Tất cả các dòng</option>
               {categories.map((c) => (
@@ -201,7 +214,7 @@ function StoreProductsContent() {
             <select
               value={selectedStorage}
               onChange={(e) => setSelectedStorage(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
             >
               <option value="">Tất cả dung lượng</option>
               <option value="128GB">128GB</option>
@@ -219,7 +232,7 @@ function StoreProductsContent() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
             >
               <option value="newest">Mới nhất</option>
               <option value="price_asc">Giá: Thấp đến Cao ↗</option>
@@ -246,7 +259,7 @@ function StoreProductsContent() {
                 onClick={() => handlePriceQuickFilter(p.id)}
                 className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
                   priceQuickFilter === p.id
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-slate-900 text-white shadow-sm'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -264,7 +277,7 @@ function StoreProductsContent() {
                 setPriceQuickFilter('CUSTOM');
               }}
               placeholder="Giá từ (₫)"
-              className="w-28 rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-none"
+              className="w-28 rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs focus:border-sky-600 focus:outline-none"
             />
             <span className="text-slate-400">-</span>
             <input
@@ -275,7 +288,7 @@ function StoreProductsContent() {
                 setPriceQuickFilter('CUSTOM');
               }}
               placeholder="Đến giá (₫)"
-              className="w-28 rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-none"
+              className="w-28 rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs focus:border-sky-600 focus:outline-none"
             />
           </div>
         </div>
@@ -284,23 +297,23 @@ function StoreProductsContent() {
       {/* Danh Sách Sản Phẩm */}
       {loading ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-sky-600 border-t-transparent" />
           <div className="text-xs text-slate-500 font-semibold mt-3">
-            Đang tải dữ liệu sản phẩm...
+            Đang lọc dữ liệu sản phẩm...
           </div>
         </div>
       ) : products.length === 0 ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center space-y-4 shadow-sm">
-          <div className="text-5xl">📱</div>
+          <Package className="h-12 w-12 text-slate-300 mx-auto" />
           <h3 className="text-lg font-bold text-slate-800">
             Không tìm thấy sản phẩm nào phù hợp
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Không có phiên bản iPhone nào thỏa mãn điều kiện tìm kiếm hoặc khoảng giá bạn vừa chọn.
+            Không có phiên bản iPhone nào thỏa mãn điều kiện từ khóa &quot;{search}&quot; hoặc khoảng giá bạn vừa chọn.
           </p>
           <button
             onClick={resetFilters}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500"
+            className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors"
           >
             Xóa bộ lọc & Xem tất cả
           </button>

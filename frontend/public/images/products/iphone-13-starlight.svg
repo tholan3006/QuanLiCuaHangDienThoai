@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-11" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="body-11" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#fefcf8"/>
+      <stop offset="45%" stop-color="#f6f3eb"/>
+      <stop offset="100%" stop-color="#fefcf8"/>
+    </linearGradient>
+    <filter id="phone-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <filter id="subtle-shadow">
+      <feDropShadow dx="0" dy="3" stdDeviation="3.5" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Studio Background -->
+  <rect width="500" height="500" rx="32" fill="url(#bg-11)"/>
+
+  <!-- Studio Reflection Pedestal -->
+  <ellipse cx="250" cy="442" rx="125" ry="14" fill="#0f172a" opacity="0.07" filter="blur(5px)"/>
+
+  <!-- Main iPhone Body -->
+  <g filter="url(#phone-shadow)">
+    <!-- Outer Precision Rim -->
+    <rect x="170" y="106" width="160" height="324" rx="36" fill="#cec8bc" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+    <!-- Back Matte Glass Panel -->
+    <rect x="173" y="109" width="154" height="318" rx="33" fill="url(#body-11)"/>
+    
+    <!-- Camera Island Module -->
+    
+      <rect x="190" y="128" width="72" height="74" rx="20" fill="#ebe6dc" stroke="#cec8bc" stroke-width="1.5" filter="url(#subtle-shadow)" />
+      <!-- Cam Top-Left -->
+      <circle cx="211" cy="149" r="14.5" fill="#09090b" stroke="#cec8bc" stroke-width="2"/>
+      <circle cx="211" cy="149" r="7" fill="#1e293b"/>
+      <circle cx="209" cy="147" r="2.5" fill="#94a3b8" opacity="0.7"/>
+      <!-- Cam Bottom-Right -->
+      <circle cx="241" cy="179" r="14.5" fill="#09090b" stroke="#cec8bc" stroke-width="2"/>
+      <circle cx="241" cy="179" r="7" fill="#1e293b"/>
+      <circle cx="239" cy="177" r="2.5" fill="#94a3b8" opacity="0.7"/>
+      <!-- Flash Top-Right -->
+      <circle cx="241" cy="145" r="5" fill="#fef08a" stroke="#cbd5e1" stroke-width="1"/>
+    
+
+    <!-- Apple Logo -->
+    <path d="M253.2 263c-.04-2.8 2.3-4.15 2.4-4.24-.02-.05-1.32-1.51-3.21-1.53-1.61-.02-3.14 1.09-3.95 1.09-.81 0-2.08-1.07-3.42-1.04-1.75.03-3.37 1.02-4.27 2.59-1.82 3.16-.47 7.83 1.31 10.39.86 1.25 1.9 2.66 3.25 2.61 1.31-.05 1.81-.84 3.38-.84 1.58 0 2.03.84 3.4.81 1.4-.03 2.29-1.28 3.15-2.53.99-1.45 1.4-2.85 1.42-2.92-.03-.02-2.74-1.05-2.76-4.17z M250.36 255.44c.72-.87 1.2-2.09 1.07-3.29-1.03.04-2.29.69-3.03 1.56-.65.75-1.22 1.98-1.07 3.15 1.15.09 2.33-.59 3.03-1.42z" fill="rgba(255,255,255,0.45)" filter="url(#subtle-shadow)"/>
+  </g>
+</svg>

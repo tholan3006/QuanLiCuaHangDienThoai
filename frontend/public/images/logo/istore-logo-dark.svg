@@ -1,0 +1,16 @@
+<svg width="220" height="60" viewBox="0 0 220 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Biểu tượng Apple cách điệu với viền gradient cho nền tối -->
+  <g transform="translate(4, 8)">
+    <rect width="44" height="44" rx="14" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+    <path d="M22 13C23.2 11.5 24.8 10.6 26.5 10.5C26.7 12.2 26 13.9 24.8 15.2C23.6 16.6 22 17.5 20.3 17.4C20.1 15.7 20.9 14.1 22 13Z" fill="#38BDF8"/>
+    <path d="M28.3 22.8C28.2 20.1 30.5 18.7 30.6 18.6C29.3 16.8 27.3 16.5 26.6 16.5C24.9 16.3 23.3 17.5 22.4 17.5C21.5 17.5 20.2 16.5 18.8 16.5C17 16.5 15.3 17.5 14.4 19.1C12.5 22.4 13.9 27.2 15.8 29.8C16.7 31.1 17.7 32.5 19.2 32.4C20.6 32.3 21.2 31.5 22.8 31.5C24.4 31.5 24.9 32.4 26.4 32.4C27.9 32.4 28.8 31.1 29.7 29.8C30.8 28.3 31.2 26.8 31.3 26.7C31.2 26.6 28.4 25.5 28.3 22.8Z" fill="#F8FAFC"/>
+  </g>
+  <!-- Chữ IStore thương hiệu trắng sáng -->
+  <text x="58" y="34" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">
+    <tspan fill="#38BDF8">i</tspan>Store
+  </text>
+  <!-- Dòng phụ thương hiệu -->
+  <text x="59" y="47" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="700" fill="#94A3B8" letter-spacing="1.2">
+    APPLE AUTHORIZED
+  </text>
+</svg>

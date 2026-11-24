@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  ArrowLeft,
+  ArrowRight,
+  ShoppingBag,
+  Trash2,
+  Truck,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -83,8 +90,8 @@ export default function StoreCartPage() {
           <div className="text-xs text-slate-500 mb-1">
             Trang chủ / Giỏ hàng mua sắm
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <span>🛒</span>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <ShoppingBag className="h-7 w-7 text-sky-600" />
             <span>Giỏ Hàng Của Bạn</span>
           </h1>
         </div>
@@ -93,9 +100,9 @@ export default function StoreCartPage() {
           <button
             type="button"
             onClick={handleClearCart}
-            className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors flex items-center gap-1.5"
+            className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition-colors flex items-center gap-1.5"
           >
-            <span>🗑️</span>
+            <Trash2 className="h-3.5 w-3.5" />
             <span>Xóa tất cả</span>
           </button>
         )}
@@ -104,8 +111,8 @@ export default function StoreCartPage() {
       {items.length === 0 ? (
         /* Giao diện Giỏ Hàng Trống */
         <div className="rounded-3xl border border-slate-200 bg-white p-12 sm:p-20 text-center space-y-5 shadow-sm max-w-2xl mx-auto">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-5xl mx-auto text-slate-400">
-            🛒
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-400 mx-auto">
+            <ShoppingBag className="h-10 w-10 text-slate-400" />
           </div>
           <div>
             <h3 className="text-xl font-bold text-slate-900">
@@ -118,10 +125,10 @@ export default function StoreCartPage() {
           <div className="pt-2">
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3.5 text-xs font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3.5 text-xs font-bold text-white shadow-lg hover:bg-slate-800 transition-all"
             >
-              <span>🛍️</span>
               <span>Khám Phá Sản Phẩm Ngay</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
@@ -142,7 +149,7 @@ export default function StoreCartPage() {
                     <div className="flex items-center gap-4 flex-1">
                       <Link
                         href={`/products/${item.masanpham}`}
-                        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-50 border border-slate-200 p-2 flex items-center justify-center"
+                        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center"
                       >
                         {item.hinhanh ? (
                           <img
@@ -151,17 +158,17 @@ export default function StoreCartPage() {
                             className="h-full w-full object-contain"
                           />
                         ) : (
-                          <span className="text-2xl">📱</span>
+                          <span className="text-xs text-slate-300">iPhone</span>
                         )}
                       </Link>
 
                       <div className="space-y-1">
-                        <div className="text-[11px] font-semibold text-blue-600">
+                        <div className="text-[11px] font-bold text-sky-600">
                           {item.tendanhmuc || 'iPhone'} • SKU: {item.sku}
                         </div>
                         <Link
                           href={`/products/${item.masanpham}`}
-                          className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors line-clamp-1"
+                          className="font-bold text-slate-900 text-sm hover:text-sky-600 transition-colors line-clamp-1"
                         >
                           {item.tensanpham}
                         </Link>
@@ -170,7 +177,7 @@ export default function StoreCartPage() {
                           <span>•</span>
                           <span>Màu: <strong>{item.mausac}</strong></span>
                         </div>
-                        <div className="text-xs font-bold text-red-600 sm:hidden">
+                        <div className="text-xs font-bold text-rose-600 sm:hidden">
                           {item.giaban.toLocaleString('vi-VN')} ₫
                         </div>
                       </div>
@@ -209,8 +216,8 @@ export default function StoreCartPage() {
                       </div>
 
                       {isMax && (
-                        <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                          Đã đạt tối đa ({item.soluongton} máy)
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          Tối đa ({item.soluongton} máy)
                         </span>
                       )}
                     </div>
@@ -218,7 +225,7 @@ export default function StoreCartPage() {
                     {/* Thành tiền & Nút Xóa */}
                     <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                       <div className="text-left sm:text-right">
-                        <div className="text-sm font-black text-red-600">
+                        <div className="text-sm font-black text-rose-600">
                           {(item.giaban * item.soluong).toLocaleString('vi-VN')} ₫
                         </div>
                         <div className="text-[10px] text-slate-400 sm:block hidden">Thành tiền</div>
@@ -227,10 +234,10 @@ export default function StoreCartPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(item.masanpham, item.tensanpham)}
-                        className="rounded-xl p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
                         title="Xóa sản phẩm"
                       >
-                        🗑️
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -239,11 +246,11 @@ export default function StoreCartPage() {
             </div>
 
             {/* Thông báo chính sách giao hàng */}
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 flex items-center gap-3 text-xs text-emerald-900">
-              <span className="text-2xl">🚚</span>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 flex items-center gap-3 text-xs text-emerald-950">
+              <Truck className="h-5 w-5 text-emerald-600 shrink-0" />
               <div>
                 <span className="font-bold">Đơn hàng của bạn đủ điều kiện Miễn Phí Vận Chuyển toàn quốc!</span>
-                <p className="text-[11px] text-emerald-700 mt-0.5">
+                <p className="text-[11px] text-emerald-800 mt-0.5">
                   Giao nhanh trong 2 giờ tại TP.HCM & Hà Nội, 24-48 giờ trên toàn quốc.
                 </p>
               </div>
@@ -286,7 +293,7 @@ export default function StoreCartPage() {
                   <span className="text-xs font-bold text-slate-700 block">Tổng thanh toán:</span>
                   <span className="text-[11px] text-slate-400">(Đã bao gồm thuế VAT)</span>
                 </div>
-                <div className="text-2xl font-black text-red-600 tracking-tight">
+                <div className="text-2xl font-black text-rose-600 tracking-tight">
                   {totalAmount.toLocaleString('vi-VN')} ₫
                 </div>
               </div>
@@ -295,17 +302,18 @@ export default function StoreCartPage() {
                 <button
                   type="button"
                   onClick={() => router.push('/checkout')}
-                  className="w-full rounded-2xl bg-red-600 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-red-600/30 hover:bg-red-500 transition-all flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-slate-900 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
                 >
                   <span>Tiến Hành Đặt Hàng (Checkout)</span>
-                  <span>➔</span>
+                  <ArrowRight className="h-4 w-4" />
                 </button>
 
                 <Link
                   href="/products"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 text-center text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors block"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-center text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center gap-1.5"
                 >
-                  ← Tiếp Tục Chọn Sản Phẩm Khác
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>Tiếp Tục Chọn Sản Phẩm Khác</span>
                 </Link>
               </div>
             </div>
@@ -314,7 +322,7 @@ export default function StoreCartPage() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-xs text-slate-500 space-y-1.5">
               <div className="font-bold text-slate-800">Cần tư vấn hỗ trợ?</div>
               <p className="text-[11px] leading-relaxed">
-                Gọi ngay hotline miễn phí <strong>1800 6868</strong> để được chuyên viên Apple Store tư vấn chi tiết về sản phẩm và phương thức thanh toán.
+                Gọi ngay hotline miễn phí <strong>1800 6868</strong> để được chuyên viên iStore tư vấn chi tiết về cấu hình máy và chính sách thanh toán.
               </p>
             </div>
           </div>

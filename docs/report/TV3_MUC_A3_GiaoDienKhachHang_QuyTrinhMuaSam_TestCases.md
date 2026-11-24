@@ -1,19 +1,23 @@
 # MỤC A.3 – GIAO DIỆN KHÁCH HÀNG VÀ QUY TRÌNH MUA SẮM (STOREFRONT)
 ## BÁO CÁO CHI TIẾT ĐỒ ÁN MÔN HỌC: PHÂN TÍCH THIẾT KẾ HỆ THỐNG THÔNG TIN
-**Phụ trách:** Thành viên 3 (Giao diện Khách hàng & Giỏ hàng)  
-**Trọng số đánh giá:** Mục A3 – Người mua hàng (20 điểm Phần mềm + Phối hợp Báo cáo)
+- **Hệ thống thương mại:** iStore – Hệ thống phân phối iPhone
+- **Phạm vi lựa chọn theo Barem Giảng viên:** Căn cứ mục **III. Lưu ý** trong file đề bài (`2026_2027_HK1 - DO AN PTTK HTTT.docx`), nhóm thống nhất chọn **MỤC A – MUA HÀNG** (không thực hiện mục B - Nhập xuất kho).
+- **Phân công trách nhiệm:** **Thành viên 3** phụ trách trọn gói **Mục A3 – Người mua hàng (20 điểm Phần mềm + Phối hợp Báo cáo)**.
 
 ---
 
 ## 1. GIỚI THIỆU PHÂN HỆ VÀ PHẠM VI NGHIỆP VỤ
 
-Phân hệ **Giao diện Khách hàng và Quy trình Mua sắm (Storefront)** đóng vai trò là điểm tiếp xúc trực tiếp giữa khách hàng và hệ thống bán lẻ iPhone. Toàn bộ trải nghiệm của người mua hàng từ giai đoạn tiếp cận sản phẩm, tìm kiếm, lựa chọn cấu hình máy (dung lượng, màu sắc), quản lý giỏ hàng đến việc hoàn tất thủ tục đặt hàng trực tuyến đều được xây dựng trên nền tảng công nghệ hiện đại **Next.js 14 (App Router)** kết hợp thư viện quản lý trạng thái **Zustand** và cơ chế đồng bộ tức thời với cơ sở dữ liệu **PostgreSQL** thông qua **NestJS RESTful API**.
+Phân hệ **Giao diện Khách hàng và Quy trình Mua sắm (Storefront)** của hệ thống **iStore** đóng vai trò là điểm tiếp xúc trực tiếp giữa khách hàng và cửa hàng bán lẻ iPhone. Toàn bộ trải nghiệm của người mua hàng từ giai đoạn tiếp cận sản phẩm, tìm kiếm tức thì (Live Autocomplete Search), lựa chọn cấu hình máy (dung lượng, màu sắc), quản lý giỏ hàng đến việc hoàn tất thủ tục đặt hàng trực tuyến đều được xây dựng trên nền tảng công nghệ hiện đại **Next.js 14 (App Router)** kết hợp thư viện quản lý trạng thái **Zustand** và cơ chế đồng bộ tức thời với cơ sở dữ liệu **PostgreSQL** thông qua **NestJS RESTful API**.
+
+Tất cả tài nguyên hình ảnh sản phẩm được lưu trữ cục bộ tại thư mục `frontend/public/images/products/` theo tiêu chuẩn studio chính hãng của Apple, bảo đảm tính thẩm mỹ đồng bộ, tốc độ tải nhanh và dễ dàng tùy biến mở rộng.
 
 ### Mục tiêu kỹ thuật và nghiệp vụ:
-1. **Trải nghiệm mượt mà, chuẩn mực thương mại điện tử:** Thiết kế giao diện theo ngôn ngữ tối giản, sang trọng của Apple Store, tối ưu hóa trên mọi kích thước màn hình (Responsive Design).
-2. **Kiểm soát tồn kho chặt chẽ (Anti-Overselling):** Ngăn chặn khách hàng thêm vào giỏ hoặc đặt mua vượt quá số lượng máy thực tế có trong kho (`TON_KHO.soluong`) ngay từ phía giao diện người dùng.
-3. **Đối chiếu dữ liệu tức thời tại thời điểm Checkout:** Tự động gọi API để kiểm tra lại giá bán và tình trạng kinh doanh của toàn bộ sản phẩm trong giỏ hàng ngay khi khách hàng mở trang thanh toán. Kịp thời cảnh báo khi có sự thay đổi giá, hết hàng hoặc sản phẩm bị ngừng kinh doanh (Soft Delete).
-4. **Bảo mật và an toàn dữ liệu:** Bắt buộc khách hàng xác thực danh tính (đăng nhập) trước khi tạo đơn hàng. Server NestJS (TV4) tiếp tục xác thực lại toàn bộ dữ liệu (không tin tưởng giá gửi từ client) và ghi nhận đơn hàng ở trạng thái `CHO_XAC_NHAN`.
+1. **Trải nghiệm mượt mà, chuẩn mực thương mại điện tử:** Thiết kế giao diện theo ngôn ngữ tối giản, sang trọng của Apple Store (iStore), sử dụng hệ thống icon vector chuẩn công nghiệp (Lucide Icons), tối ưu hóa trên mọi kích thước màn hình (Responsive Design).
+2. **Tìm kiếm tức thì (Live Autocomplete Search):** Khách hàng gõ từng ký tự đến đâu, hệ thống lập tức hiển thị popover gợi ý các sản phẩm phù hợp đến đó kèm hình ảnh, màu sắc, dung lượng và giá bán.
+3. **Kiểm soát tồn kho chặt chẽ (Anti-Overselling):** Ngăn chặn khách hàng thêm vào giỏ hoặc đặt mua vượt quá số lượng máy thực tế có trong kho (`TON_KHO.soluong`) ngay từ phía giao diện người dùng.
+4. **Đối chiếu dữ liệu tức thời tại thời điểm Checkout:** Tự động gọi API để kiểm tra lại giá bán và tình trạng kinh doanh của toàn bộ sản phẩm trong giỏ hàng ngay khi khách hàng mở trang thanh toán. Kịp thời cảnh báo khi có sự thay đổi giá, hết hàng hoặc sản phẩm bị ngừng kinh doanh (Soft Delete).
+5. **Bảo mật và an toàn dữ liệu:** Bắt buộc khách hàng xác thực danh tính (đăng nhập) trước khi tạo đơn hàng. Server NestJS (TV4) tiếp tục xác thực lại toàn bộ dữ liệu (không tin tưởng giá gửi từ client) và ghi nhận đơn hàng ở trạng thái `CHO_XAC_NHAN`.
 
 ---
 

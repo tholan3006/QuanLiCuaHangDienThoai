@@ -83,7 +83,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Sa Mạc',
     giaban: 34990000,
     mota: '[SKU: IP16PM-256-DES] Màn hình Super Retina XDR 6.9 inch, Chip A18 Pro, Camera 48MP Fusion, Zoom quang 5x.',
-    hinhanh: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&q=80',
+    hinhanh: '/images/products/iphone-16-pro-max-desert.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 25,
@@ -101,7 +101,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Tự Nhiên',
     giaban: 40990000,
     mota: '[SKU: IP16PM-512-NAT] Màn hình Super Retina XDR 6.9 inch, Chip A18 Pro, bộ nhớ 512GB quay ProRes 4K 120fps.',
-    hinhanh: 'https://images.unsplash.com/photo-1695048132832-b41495f12eb4?w=500&q=80',
+    hinhanh: '/images/products/iphone-16-pro-max-natural.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 15,
@@ -119,7 +119,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Đen',
     giaban: 46990000,
     mota: '[SKU: IP16PM-1TB-BLK] Phiên bản cao cấp nhất 1TB, khung Titan cấp 5 siêu bền nhẹ.',
-    hinhanh: 'https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?w=500&q=80',
+    hinhanh: '/images/products/iphone-16-pro-max-black.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 4,
@@ -137,7 +137,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Trắng',
     giaban: 28990000,
     mota: '[SKU: IP16P-128-WHT] Màn hình 6.3 inch ProMotion 120Hz, Chip A18 Pro, nút điều khiển Camera Control.',
-    hinhanh: 'https://images.unsplash.com/photo-1695048133021-be2def43f3b2?w=500&q=80',
+    hinhanh: '/images/products/iphone-16-pro-white.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 20,
@@ -155,7 +155,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Xanh Lưu Ly',
     giaban: 25990000,
     mota: '[SKU: IP16PL-256-ULT] Màn hình lớn 6.7 inch, pin siêu trâu, Chip A18 hỗ trợ Apple Intelligence.',
-    hinhanh: 'https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=500&q=80',
+    hinhanh: '/images/products/iphone-16-plus-ultramarine.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 18,
@@ -173,7 +173,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Hồng',
     giaban: 22990000,
     mota: '[SKU: IP16-128-PNK] Thiết kế camera dọc mới, nút Action Button và Camera Control hiện đại.',
-    hinhanh: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&q=80',
+    hinhanh: '/images/products/iphone-16-pink.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 1,
     soluongton: 30,
@@ -191,7 +191,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Tự Nhiên',
     giaban: 29490000,
     mota: '[SKU: IP15PM-256-NAT] Khung viền Titan, chip A17 Pro 3nm, camera tiềm vọng 5x, cổng USB-C 3.',
-    hinhanh: 'https://images.unsplash.com/photo-1695048132832-b41495f12eb4?w=500&q=80',
+    hinhanh: '/images/products/iphone-15-pro-max-natural.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 2,
     soluongton: 12,
@@ -209,7 +209,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Titan Xanh',
     giaban: 34990000,
     mota: '[SKU: IP15PM-512-BLU] Phiên bản 512GB màu Titan Xanh sang trọng, hiệu năng đỉnh cao.',
-    hinhanh: 'https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?w=500&q=80',
+    hinhanh: '/images/products/iphone-15-pro-max-blue.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 2,
     soluongton: 3,
@@ -227,7 +227,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Hồng',
     giaban: 19490000,
     mota: '[SKU: IP15-128-PNK] Camera chính 48MP sắc nét, Dynamic Island, cổng sạc USB-C tiện lợi.',
-    hinhanh: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&q=80',
+    hinhanh: '/images/products/iphone-15-pink.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 2,
     soluongton: 22,
@@ -245,7 +245,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Tím',
     giaban: 15990000,
     mota: '[SKU: IP14-128-PUR] Thiết kế nhỏ gọn 6.1 inch, camera chụp đêm ấn tượng.',
-    hinhanh: 'https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=500&q=80',
+    hinhanh: '/images/products/iphone-14-purple.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 3,
     soluongton: 16,
@@ -263,7 +263,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Trắng Starlight',
     giaban: 13490000,
     mota: '[SKU: IP13-128-STA] Mẫu iPhone bán chạy nhất phân khúc tầm trung, hiệu năng mượt mà.',
-    hinhanh: 'https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=500&q=80',
+    hinhanh: '/images/products/iphone-13-starlight.jpg',
     trangthai: 'DANG_BAN',
     madanhmuc: 4,
     soluongton: 25,
@@ -281,7 +281,7 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Xanh Alpine',
     giaban: 21990000,
     mota: '[SKU: IP13PM-128-ALP] Sản phẩm đã ngừng kinh doanh (Soft Delete) - ẩn khỏi trang khách hàng nhưng bảo toàn lịch sử đơn hàng.',
-    hinhanh: 'https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=500&q=80',
+    hinhanh: '/images/products/iphone-13-pro-max-green.jpg',
     trangthai: 'NGUNG_KINH_DOANH',
     madanhmuc: 4,
     soluongton: 0,
@@ -301,7 +301,23 @@ function getLocalProducts(): ProductItem[] {
     return INITIAL_PRODUCTS;
   }
   try {
-    return JSON.parse(raw);
+    const list: ProductItem[] = JSON.parse(raw);
+    // Tự động nâng cấp đường dẫn ảnh sang ảnh local chính thức nếu còn ảnh cũ unsplash
+    let needUpdate = false;
+    const initialMap = new Map(INITIAL_PRODUCTS.map((p) => [p.masanpham, p.hinhanh]));
+    const migrated = list.map((item) => {
+      const properImage = initialMap.get(item.masanpham);
+      if (properImage && item.hinhanh?.includes('unsplash.com')) {
+        needUpdate = true;
+        return { ...item, hinhanh: properImage };
+      }
+      return item;
+    });
+    if (needUpdate) {
+      localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    return list;
   } catch {
     return INITIAL_PRODUCTS;
   }
