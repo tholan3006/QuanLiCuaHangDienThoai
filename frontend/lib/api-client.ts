@@ -24,6 +24,10 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  const mataikhoan =
+    typeof window !== 'undefined' ? localStorage.getItem('auth_mataikhoan') : null;
+  const role =
+    typeof window !== 'undefined' ? localStorage.getItem('auth_role') : null;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -32,6 +36,14 @@ export async function apiRequest<T>(
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Hỗ trợ OrdersAuthGuard của TV4 khi test ở môi trường phát triển
+  if (mataikhoan) {
+    headers['x-account-id'] = mataikhoan;
+  }
+  if (role) {
+    headers['x-role'] = role;
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {

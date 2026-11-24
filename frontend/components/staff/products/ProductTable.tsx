@@ -1,5 +1,14 @@
 'use client';
 
+import {
+  Boxes,
+  CheckCircle2,
+  Edit3,
+  Eye,
+  EyeOff,
+  Package,
+  Trash2,
+} from 'lucide-react';
 import React from 'react';
 import { ProductItem } from '../../../services/products.api';
 
@@ -21,63 +30,77 @@ export default function ProductTable({
   const renderStockBadge = (product: ProductItem) => {
     if (product.trangthai === 'NGUNG_KINH_DOANH') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
-          Đã ẩn ({product.soluongton} máy)
+        <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+          Đã ẩn ({product.soluongton})
         </span>
       );
     }
     if (product.soluongton === 0 || product.trangthai === 'HET_HANG') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
-          Hết hàng (0 máy)
+        <span className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700 border border-rose-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+          Hết hàng (0)
         </span>
       );
     }
     if (product.soluongton <= 5) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
-          Sắp hết ({product.soluongton} máy)
+        <span className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 border border-amber-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          Sắp hết ({product.soluongton})
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-        Còn hàng ({product.soluongton} máy)
+      <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Còn hàng ({product.soluongton})
       </span>
     );
   };
 
-  const renderStatusBadge = (trangthai: ProductItem['trangthai']) => {
-    switch (trangthai) {
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
       case 'DANG_BAN':
         return (
-          <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200">
-            Đang kinh doanh
-          </span>
-        );
-      case 'HET_HANG':
-        return (
-          <span className="rounded-lg bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 border border-orange-200">
-            Tạm hết hàng
+          <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-0.5 text-[11px] font-bold text-sky-700 border border-sky-200">
+            <CheckCircle2 className="h-3 w-3 text-sky-600" />
+            <span>Kinh doanh</span>
           </span>
         );
       case 'NGUNG_KINH_DOANH':
         return (
-          <span className="rounded-lg bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 border border-red-200">
-            Ngừng kinh doanh (Ẩn)
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-600 border border-rose-200">
+            <EyeOff className="h-3 w-3 text-rose-500" />
+            <span>Ngừng bán</span>
           </span>
         );
+      case 'HET_HANG':
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 border border-amber-200">
+            <span>Tạm hết</span>
+          </span>
+        );
+      default:
+        return (
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700">
+            {status}
+          </span>
+        );
+    }
+  };
+
+  const handleDeleteClick = (p: ProductItem) => {
+    if (confirm(`Bạn có chắc muốn XÓA (ẩn khỏi kinh doanh) phiên bản sản phẩm #${p.masanpham} "${p.tensanpham} (${p.dungluong} - ${p.mausac})"?`)) {
+      onHide(p.masanpham);
     }
   };
 
   if (products.length === 0) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-        <div className="text-3xl mb-2">📱</div>
+        <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
         <h3 className="text-base font-bold text-slate-800">
           Không tìm thấy phiên bản sản phẩm iPhone phù hợp
         </h3>
@@ -91,65 +114,70 @@ export default function ProductTable({
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-600">
+        <table className="w-full text-left text-xs">
+          <thead className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold uppercase tracking-wider text-slate-500">
             <tr>
-              <th className="px-4 py-3.5">Mã / SKU</th>
-              <th className="px-4 py-3.5">Sản phẩm iPhone</th>
-              <th className="px-4 py-3.5">Danh mục</th>
-              <th className="px-4 py-3.5">Phiên bản</th>
-              <th className="px-4 py-3.5 text-right">Giá bán (giaban)</th>
-              <th className="px-4 py-3.5 text-center">Tồn kho (TON_KHO)</th>
-              <th className="px-4 py-3.5 text-center">Trạng thái</th>
-              <th className="px-4 py-3.5 text-right">Thao tác quản lý</th>
+              <th className="px-3.5 py-3.5 w-16 text-center">ID</th>
+              <th className="px-4 py-3.5 min-w-[200px]">Sản Phẩm iPhone</th>
+              <th className="px-3 py-3.5">Dòng Máy</th>
+              <th className="px-3 py-3.5">Phiên Bản</th>
+              <th className="px-4 py-3.5 text-right">Giá Bán</th>
+              <th className="px-3.5 py-3.5 text-center">Tồn Kho</th>
+              <th className="px-3.5 py-3.5 text-center">Trạng Thái</th>
+              {/* CỘT THAO TÁC CÓ MIN-WIDTH & STICKY ĐỂ LUÔN HIỂN THỊ ĐẦY ĐỦ NÚT XÓA */}
+              <th className="px-4 py-3.5 text-center min-w-[230px] sticky right-0 bg-slate-50/95 shadow-[-4px_0_8px_rgba(0,0,0,0.04)] z-10">
+                Thao Tác Quản Lý
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-slate-100 text-slate-800">
             {products.map((p) => {
               const isHidden = p.trangthai === 'NGUNG_KINH_DOANH';
               return (
                 <tr
                   key={p.masanpham}
-                  className={`transition-colors ${
+                  className={`group transition-colors ${
                     isHidden
-                      ? 'bg-slate-50/80 text-slate-500'
-                      : 'hover:bg-blue-50/30'
+                      ? 'bg-slate-50/60 text-slate-400'
+                      : 'hover:bg-slate-50/80'
                   }`}
                 >
-                  <td className="px-4 py-3.5 align-middle">
-                    <div className="font-mono text-xs font-bold text-slate-800">
+                  {/* Mã / SKU */}
+                  <td className="px-3.5 py-3 align-middle text-center">
+                    <span className="font-mono text-xs font-bold text-slate-900 block">
                       #{p.masanpham}
-                    </div>
-                    <div className="mt-0.5 inline-block rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-600 border border-slate-200">
+                    </span>
+                    <span className="rounded bg-slate-100 px-1 py-0.2 font-mono text-[9px] text-slate-500 border border-slate-200">
                       {p.sku}
-                    </div>
+                    </span>
                   </td>
 
-                  <td className="px-4 py-3.5 align-middle">
+                  {/* Ảnh & Tên Sản Phẩm */}
+                  <td className="px-4 py-3 align-middle">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center">
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 p-1 flex items-center justify-center">
                         {p.hinhanh ? (
                           <img
                             src={p.hinhanh}
                             alt={p.tensanpham}
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-contain filter drop-shadow-sm"
                           />
                         ) : (
-                          <span className="text-lg">📱</span>
+                          <Package className="h-5 w-5 text-slate-400" />
                         )}
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div
-                          className={`font-bold ${
+                          className={`font-bold text-xs truncate max-w-xs ${
                             isHidden
-                              ? 'line-through text-slate-500'
+                              ? 'line-through text-slate-400'
                               : 'text-slate-900'
                           }`}
                         >
                           {p.tensanpham}
                         </div>
                         {p.mota && (
-                          <div className="text-xs text-slate-500 line-clamp-1 max-w-xs">
+                          <div className="text-[10px] text-slate-400 line-clamp-1 max-w-xs mt-0.5">
                             {p.mota.replace(/\[SKU:\s*[^\]]+\]\s*/i, '')}
                           </div>
                         )}
@@ -157,70 +185,82 @@ export default function ProductTable({
                     </div>
                   </td>
 
-                  <td className="px-4 py-3.5 align-middle">
-                    <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                      {p.DANH_MUC?.tendanhmuc || `Danh mục #${p.madanhmuc}`}
+                  {/* Danh Mục */}
+                  <td className="px-3 py-3 align-middle whitespace-nowrap">
+                    <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                      {p.DANH_MUC?.tendanhmuc || `Dòng #${p.madanhmuc}`}
                     </span>
                   </td>
 
-                  <td className="px-4 py-3.5 align-middle">
-                    <div className="flex flex-col gap-1">
-                      <span className="inline-flex w-fit items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-700">
+                  {/* Phiên Bản */}
+                  <td className="px-3 py-3 align-middle whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <span className="rounded bg-slate-900 text-white px-1.5 py-0.5 text-[10px] font-bold">
                         {p.dungluong}
                       </span>
-                      <span className="text-xs font-medium text-slate-700">
-                        Màu: <strong>{p.mausac}</strong>
+                      <span className="text-xs font-semibold text-slate-700">
+                        {p.mausac}
                       </span>
                     </div>
                   </td>
 
-                  <td className="px-4 py-3.5 align-middle text-right font-bold text-blue-700">
+                  {/* Giá Bán */}
+                  <td className="px-4 py-3 align-middle text-right font-black text-rose-600 text-xs sm:text-sm whitespace-nowrap">
                     {p.giaban.toLocaleString('vi-VN')} ₫
                   </td>
 
-                  <td className="px-4 py-3.5 align-middle text-center">
+                  {/* Tồn Kho */}
+                  <td className="px-3.5 py-3 align-middle text-center whitespace-nowrap">
                     {renderStockBadge(p)}
                   </td>
 
-                  <td className="px-4 py-3.5 align-middle text-center">
+                  {/* Trạng Thái */}
+                  <td className="px-3.5 py-3 align-middle text-center whitespace-nowrap">
                     {renderStatusBadge(p.trangthai)}
                   </td>
 
-                  <td className="px-4 py-3.5 align-middle text-right">
-                    <div className="flex items-center justify-end gap-1.5">
+                  {/* Thao Tác Quản Lý (Luôn hiển thị đầy đủ Kho & Giá, Sửa, Xóa) */}
+                  <td className="px-4 py-3 align-middle text-center whitespace-nowrap sticky right-0 bg-white group-hover:bg-slate-50 transition-colors shadow-[-4px_0_8px_rgba(0,0,0,0.04)] z-10">
+                    <div className="flex items-center justify-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => onQuickStockPrice(p)}
-                        title="Cập nhật nhanh Giá bán, Tồn kho (TON_KHO) & Hình ảnh"
-                        className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                        title="Cập nhật nhanh Giá bán & Tồn kho"
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors"
                       >
-                        Giá & Kho
+                        <Boxes className="h-3 w-3 text-emerald-600" />
+                        <span>Kho & Giá</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => onEdit(p)}
-                        className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                        title="Chỉnh sửa thông tin sản phẩm"
+                        className="inline-flex items-center gap-1 rounded-lg border border-sky-300 bg-sky-50 px-2 py-1 text-xs font-bold text-sky-800 hover:bg-sky-100 transition-colors"
                       >
-                        Sửa
+                        <Edit3 className="h-3 w-3 text-sky-600" />
+                        <span>Sửa</span>
                       </button>
 
                       {isHidden ? (
                         <button
                           type="button"
                           onClick={() => onRestore(p.masanpham)}
-                          className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-slate-100 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors"
+                          title="Mở bán lại cho khách hàng"
                         >
-                          Mở bán lại
+                          <Eye className="h-3 w-3 text-slate-600" />
+                          <span>Mở lại</span>
                         </button>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => onHide(p.masanpham)}
-                          title="Soft Delete: Ẩn khỏi trang khách hàng, không xóa vật lý"
-                          className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                          onClick={() => handleDeleteClick(p)}
+                          title="Xóa / Ngừng kinh doanh sản phẩm này"
+                          className="inline-flex items-center gap-1 rounded-lg border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
                         >
-                          Ẩn SP
+                          <Trash2 className="h-3 w-3" />
+                          <span>Xóa</span>
                         </button>
                       )}
                     </div>

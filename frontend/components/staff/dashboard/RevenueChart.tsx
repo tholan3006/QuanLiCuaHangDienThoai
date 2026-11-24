@@ -84,7 +84,7 @@ export function RevenueChart({ data, loading }: RevenueChartProps) {
             callbacks: {
               label: (context) => {
                 if (context.dataset.yAxisID === 'y') {
-                  const val = context.parsed.y;
+                  const val = context.parsed.y ?? 0;
                   return ` Doanh thu: ${new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
                     currency: 'VND',
