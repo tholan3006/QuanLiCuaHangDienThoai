@@ -289,6 +289,42 @@ export default function StoreCheckoutPage() {
   }
 
   // ---------------------------------------------------------------------------
+  // GIAO DIỆN KHI TÀI KHOẢN LÀ NHÂN VIÊN HOẶC ADMIN (CHẶN ĐẶT HÀNG TRÊN STOREFRONT)
+  // ---------------------------------------------------------------------------
+  if (customer && (customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN')) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-14 text-center space-y-6 shadow-sm">
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 mx-auto shadow-inner border border-indigo-100 dark:border-indigo-800">
+            <ShieldCheck className="h-9 w-9 text-indigo-600 dark:text-indigo-400" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              {lang === 'VI' ? 'Tài Khoản Quản Lý / Nhân Viên' : 'Staff / Admin Account'}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+              {lang === 'VI'
+                ? `Bạn đang đăng nhập bằng tài khoản ${customer.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên'}. Storefront và thanh toán chỉ áp dụng cho tài khoản Khách Hàng. Nhân viên vui lòng quản lý đơn hàng tại Cổng Quản Lý.`
+                : `You are signed in as ${customer.role === 'ADMIN' ? 'Admin' : 'Staff'}. Storefront checkout is exclusively for Customer accounts.`}
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href={customer.role === 'ADMIN' ? '/admin' : '/staff/orders'}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-500 transition-all"
+            >
+              <span>{lang === 'VI' ? 'Về Quản Lý Đơn Hàng' : 'Go to Orders Management'}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // GIAO DIỆN KHI GIỎ HÀNG RỖNG
   // ---------------------------------------------------------------------------
   if (items.length === 0) {

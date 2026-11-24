@@ -70,6 +70,19 @@ export default function ProductCard({ product, onAddedToCart }: ProductCardProps
       return;
     }
 
+    // NGHIỆP VỤ: Nhân viên và Admin không mua hàng trên Storefront
+    if (curCustomer.role === 'NHAN_VIEN' || curCustomer.role === 'ADMIN') {
+      if (onAddedToCart) {
+        onAddedToCart(
+          lang === 'VI'
+            ? 'Tài khoản Nhân viên / Quản trị viên không thực hiện đặt hàng trên Storefront!'
+            : 'Staff / Admin accounts cannot purchase items on the storefront!',
+          false,
+        );
+      }
+      return;
+    }
+
     setAdding(true);
     const result = addToCart(product, 1);
     setAdding(false);
@@ -155,26 +168,39 @@ export default function ProductCard({ product, onAddedToCart }: ProductCardProps
         </div>
       </div>
 
-      {/* Nút hành động */}
+      {/* Nút hành động (Chỉ khách hàng mới có nút Thêm Giỏ; Staff/Admin chỉ xem chi tiết) */}
       <div className="mt-4 pt-2 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          disabled={isOutOfStock || adding}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 px-3 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-slate-400 disabled:opacity-40 transition-all"
-        >
-          <ShoppingBag className="h-3.5 w-3.5 text-sky-500" />
-          <span>{t('add_to_cart')}</span>
-        </button>
+        {(!authApi.getCurrentCustomer() || authApi.getCurrentCustomer()?.role === 'KHACH_HANG') ? (
+          <>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={isOutOfStock || adding}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 px-3 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-slate-400 disabled:opacity-40 transition-all"
+            >
+              <ShoppingBag className="h-3.5 w-3.5 text-sky-500" />
+              <span>{t('add_to_cart')}</span>
+            </button>
 
-        <Link
-          href={`/products/${product.masanpham}`}
-          onClick={handleCardClick}
-          className="inline-flex items-center justify-center gap-1 rounded-xl bg-slate-900 dark:bg-sky-600 py-2.5 px-3 text-xs font-bold text-white shadow hover:bg-slate-800 dark:hover:bg-sky-500 transition-all shrink-0"
-        >
-          <span>{t('view_details')}</span>
-          <ArrowRight className="h-3 w-3" />
-        </Link>
+            <Link
+              href={`/products/${product.masanpham}`}
+              onClick={handleCardClick}
+              className="inline-flex items-center justify-center gap-1 rounded-xl bg-slate-900 dark:bg-sky-600 py-2.5 px-3 text-xs font-bold text-white shadow hover:bg-slate-800 dark:hover:bg-sky-500 transition-all shrink-0"
+            >
+              <span>{t('view_details')}</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </>
+        ) : (
+          <Link
+            href={`/products/${product.masanpham}`}
+            onClick={handleCardClick}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-sky-600 py-2.5 px-4 text-xs font-bold text-white shadow hover:bg-slate-800 dark:hover:bg-sky-500 transition-all"
+          >
+            <span>{t('view_details')}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
       </div>
     </div>
   );

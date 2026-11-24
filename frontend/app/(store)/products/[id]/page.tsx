@@ -19,7 +19,7 @@ import ProductCard, {
 } from '../../../../components/store/ProductCard';
 import StoreToast, { ToastMessage } from '../../../../components/store/StoreToast';
 import { useLanguage } from '../../../../contexts/LanguageContext';
-import { authApi, openCustomerAuthModal } from '../../../../services/auth.api';
+import { authApi, CustomerProfile, openCustomerAuthModal } from '../../../../services/auth.api';
 import { ProductItem, productsApi } from '../../../../services/products.api';
 import { useCartStore } from '../../../../stores/cart.store';
 
@@ -62,8 +62,16 @@ export default function ProductDetailPage() {
   // Số lượng khách chọn mua
   const [quantity, setQuantity] = useState(1);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [customer, setCustomer] = useState<CustomerProfile | null>(null);
 
   const addToCart = useCartStore((state) => state.addToCart);
+
+  useEffect(() => {
+    setCustomer(authApi.getCurrentCustomer());
+    const handleAuthChange = () => setCustomer(authApi.getCurrentCustomer());
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
+  }, []);
 
   // TỰ ĐỘNG CUỘN LÊN ĐẦU TRANG MỖI KHI CLICK CHỌN SẢN PHẨM MỚI HOẶC KHÁC
   useEffect(() => {
@@ -193,6 +201,17 @@ export default function ProductDetailPage() {
       return;
     }
 
+    // NGHIỆP VỤ: Nhân viên và Admin không mua hàng trên Storefront
+    if (curCustomer.role === 'NHAN_VIEN' || curCustomer.role === 'ADMIN') {
+      addToast(
+        lang === 'VI'
+          ? 'Tài khoản Nhân viên / Quản trị viên không thực hiện mua hàng trên Storefront!'
+          : 'Staff / Admin accounts cannot purchase items on Storefront!',
+        false,
+      );
+      return;
+    }
+
     const res = addToCart(product, quantity);
     addToast(res.message, res.success);
   };
@@ -213,6 +232,17 @@ export default function ProductDetailPage() {
         lang === 'VI'
           ? 'Vui lòng đăng nhập tài khoản để tiến hành mua hàng!'
           : 'Please sign in to proceed with purchase!',
+      );
+      return;
+    }
+
+    // NGHIỆP VỤ: Nhân viên và Admin không mua hàng trên Storefront
+    if (curCustomer.role === 'NHAN_VIEN' || curCustomer.role === 'ADMIN') {
+      addToast(
+        lang === 'VI'
+          ? 'Tài khoản Nhân viên / Quản trị viên không thực hiện mua hàng trên Storefront!'
+          : 'Staff / Admin accounts cannot purchase items on Storefront!',
+        false,
       );
       return;
     }
@@ -523,70 +553,102 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* 3. BỘ CHỌN SỐ LƯỢNG (CHẶN VƯỢT TỒN KHO) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
-              {t('purchase_quantity')} ({t('max_stock_label')} {product.soluongton} {t('units_left')})
-            </label>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1 || isOutOfStock}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-40 transition-colors"
-                >
-                  −
-                </button>
-                <span className="w-12 text-center text-sm font-black text-slate-900 dark:text-slate-100">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= product.soluongton || isOutOfStock}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-40 transition-colors"
-                >
-                  +
-                </button>
+          {/* 3. BỘ CHỌN SỐ LƯỢNG & NÚT MUA HÀNG (CHỈ DÀNH CHO KHÁCH HÀNG / GUEST) */}
+          {customer && (customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN') ? (
+            <div className="rounded-2xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/80 dark:bg-indigo-950/40 p-5 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                <ShieldCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span>{lang === 'VI' ? 'Tài Khoản Quản Lý / Nhân Viên' : 'Staff / Admin Management Account'}</span>
               </div>
-
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                {t('subtotal_label')}: <strong className="text-rose-600 dark:text-rose-400 text-sm font-black">{(product.giaban * quantity).toLocaleString('vi-VN')} ₫</strong>
+              <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+                {lang === 'VI'
+                  ? `Bạn đang đăng nhập với quyền ${customer.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên Bán Hàng'}. Storefront chỉ phục vụ khách hàng mua sắm. Nhân viên không thực hiện đặt hàng trên giao diện này.`
+                  : `You are signed in as ${customer.role === 'ADMIN' ? 'Admin' : 'Staff'}. Storefront purchasing is strictly for customers.`}
+              </p>
+              <div className="pt-1 flex flex-wrap gap-2.5">
+                <Link
+                  href={customer.role === 'ADMIN' ? '/admin' : '/staff/products'}
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 text-xs font-bold shadow transition-all"
+                >
+                  <span>{lang === 'VI' ? 'Đến Cổng Quản Lý Sản Phẩm' : 'Go to Product Management'}</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href="/staff/orders"
+                  className="inline-flex items-center gap-2 rounded-xl border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-slate-800 text-indigo-800 dark:text-indigo-200 px-4 py-2.5 text-xs font-bold hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all"
+                >
+                  <span>{lang === 'VI' ? 'Xem Danh Sách Đơn Hàng' : 'View Orders List'}</span>
+                </Link>
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* 3. BỘ CHỌN SỐ LƯỢNG (CHẶN VƯỢT TỒN KHO) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+                  {t('purchase_quantity')} ({t('max_stock_label')} {product.soluongton} {t('units_left')})
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => handleQuantityChange(-1)}
+                      disabled={quantity <= 1 || isOutOfStock}
+                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-40 transition-colors"
+                    >
+                      −
+                    </button>
+                    <span className="w-12 text-center text-sm font-black text-slate-900 dark:text-slate-100">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleQuantityChange(1)}
+                      disabled={quantity >= product.soluongton || isOutOfStock}
+                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-40 transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
 
-          {/* 4. NÚT MUA HÀNG & THÊM GIỎ */}
-          <div className="pt-2 flex flex-col sm:flex-row gap-3">
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={isOutOfStock}
-              className={`flex-1 rounded-2xl py-3.5 px-6 text-xs font-bold transition-all flex items-center justify-center gap-2 border ${
-                isOutOfStock
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <ShoppingBag className="h-4 w-4" />
-              <span>{t('add_cart_btn')}</span>
-            </button>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {t('subtotal_label')}: <strong className="text-rose-600 dark:text-rose-400 text-sm font-black">{(product.giaban * quantity).toLocaleString('vi-VN')} ₫</strong>
+                  </div>
+                </div>
+              </div>
 
-            <button
-              type="button"
-              onClick={handleBuyNow}
-              disabled={isOutOfStock}
-              className={`flex-1 rounded-2xl py-3.5 px-6 text-xs font-extrabold text-white transition-all shadow-lg flex items-center justify-center gap-2 ${
-                isOutOfStock
-                  ? 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
-                  : 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30'
-              }`}
-            >
-              <Zap className="h-4 w-4" />
-              <span>{isOutOfStock ? t('out_of_stock') : t('buy_now_btn')}</span>
-            </button>
-          </div>
+              {/* 4. NÚT MUA HÀNG & THÊM GIỎ */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isOutOfStock}
+                  className={`flex-1 rounded-2xl py-3.5 px-6 text-xs font-bold transition-all flex items-center justify-center gap-2 border ${
+                    isOutOfStock
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>{t('add_cart_btn')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  disabled={isOutOfStock}
+                  className={`flex-1 rounded-2xl py-3.5 px-6 text-xs font-extrabold text-white transition-all shadow-lg flex items-center justify-center gap-2 ${
+                    isOutOfStock
+                      ? 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
+                      : 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30'
+                  }`}
+                >
+                  <Zap className="h-4 w-4" />
+                  <span>{isOutOfStock ? t('out_of_stock') : t('buy_now_btn')}</span>
+                </button>
+              </div>
+            </>
+          )}
 
           {/* Mô tả chi tiết (Tự động dịch sang tiếng Anh khi chọn EN) */}
           {localizedDescription && (

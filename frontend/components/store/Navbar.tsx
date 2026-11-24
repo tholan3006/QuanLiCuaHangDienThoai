@@ -137,21 +137,6 @@ export default function StoreNavbar() {
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-md text-white transition-colors">
-        {/* Thanh Thông Báo Apple Care & Hotline */}
-        <div className="bg-slate-900/90 text-slate-300 border-b border-slate-800/80 px-4 py-1.5 text-center text-[11px] font-semibold tracking-wide">
-          <div className="mx-auto max-w-7xl flex items-center justify-between">
-            <span className="hidden sm:inline">
-              {lang === 'VI'
-                ? 'Hệ thống phân phối iPhone chính hãng • Bảo hành Apple Care 12 Tháng'
-                : 'Authorized iPhone Reseller • 12-Month Official Apple Care Warranty'}
-            </span>
-            <span className="sm:hidden mx-auto font-bold text-sky-400">iStore Vietnam</span>
-            <div className="hidden sm:flex items-center gap-4 text-xs font-normal">
-              <span>Hotline: <strong className="text-white">1800 6868</strong></span>
-            </div>
-          </div>
-        </div>
-
         {/* Header Chính */}
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           {/* Logo iStore */}
@@ -282,21 +267,32 @@ export default function StoreNavbar() {
               <span>{lang}</span>
             </button>
 
-            {/* Giỏ hàng với badge (Chặn nếu chưa đăng nhập) */}
-            <Link
-              href="/cart"
-              onClick={handleCartClick}
-              className="relative flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:border-sky-500 transition-all shadow-sm"
-              title={customer ? t('cart') : t('sign_in')}
-            >
-              <ShoppingBag className="h-4 w-4 text-sky-400" />
-              <span className="hidden sm:inline">{t('cart')}</span>
-              {customer && cartCount > 0 && (
-                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-extrabold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+            {/* Giỏ hàng: Chỉ dành cho Khách Hàng hoặc Khách vãng lai. Nhân viên & Admin dùng nút Cổng Quản Lý */}
+            {(!customer || customer.role === 'KHACH_HANG') ? (
+              <Link
+                href="/cart"
+                onClick={handleCartClick}
+                className="relative flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:border-sky-500 transition-all shadow-sm"
+                title={customer ? t('cart') : t('sign_in')}
+              >
+                <ShoppingBag className="h-4 w-4 text-sky-400" />
+                <span className="hidden sm:inline">{t('cart')}</span>
+                {customer && cartCount > 0 && (
+                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-extrabold text-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            ) : (
+              <Link
+                href={customer.role === 'ADMIN' ? '/admin' : '/staff/products'}
+                className="flex items-center gap-1.5 rounded-xl border border-indigo-500/50 bg-indigo-950/60 text-indigo-300 px-3 py-2 text-xs font-bold hover:bg-indigo-900/60 transition-all shadow-sm"
+                title={customer.role === 'ADMIN' ? 'Hệ thống Quản Trị Server' : 'Cổng Bán Hàng & Sản Phẩm Nhân Viên'}
+              >
+                <ShieldCheck className="h-4 w-4 text-indigo-400" />
+                <span className="hidden sm:inline">{customer.role === 'ADMIN' ? 'Admin Portal' : 'Staff Portal'}</span>
+              </Link>
+            )}
 
             {/* User Account / Auth Dropdown */}
             {customer ? (
