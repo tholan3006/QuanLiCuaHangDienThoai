@@ -445,6 +445,34 @@ export const productsApi = {
   },
 
   /**
+   * Lấy chi tiết 1 sản phẩm cho Khách hàng (Chặn nếu sản phẩm đã NGUNG_KINH_DOANH)
+   */
+  async getById(masanpham: number): Promise<ProductItem> {
+    try {
+      return await apiRequest<ProductItem>(`/products/${masanpham}`);
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+      const all = getLocalProducts();
+      const product = all.find((p) => p.masanpham === Number(masanpham));
+      if (!product) {
+        throw new Error(`Không tìm thấy sản phẩm #${masanpham}`);
+      }
+      if (product.trangthai === 'NGUNG_KINH_DOANH') {
+        throw new Error('Sản phẩm này đã ngừng kinh doanh và không còn hiển thị.');
+      }
+      return product;
+    }
+  },
+
+  /**
+   * Lấy danh sách sản phẩm cùng dòng / liên quan
+   */
+  async getRelated(masanpham: number, madanhmuc?: number, limit = 4): Promise<ProductItem[]> {
+    const res = await this.getForStore({ madanhmuc });
+    return res.data.filter((p) => p.masanpham !== masanpham).slice(0, limit);
+  },
+
+  /**
    * Thêm mới phiên bản sản phẩm iPhone (SAN_PHAM + TON_KHO)
    */
   async create(payload: CreateProductPayload): Promise<ProductItem> {
