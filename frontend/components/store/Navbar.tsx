@@ -3,15 +3,13 @@
 import {
   ChevronDown,
   Globe,
+  Lock,
   LogIn,
   LogOut,
-  Moon,
   Search,
-  ShieldAlert,
+  ShieldCheck,
   ShoppingBag,
-  Sun,
   User,
-  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -26,75 +24,49 @@ import { ProductItem, productsApi } from '../../services/products.api';
 import { useCartStore } from '../../stores/cart.store';
 import AuthModal from './AuthModal';
 
+const IPHONE_SERIES_TABS = [
+  { id: 'all', labelKey: 'all_iphone', href: '/products' },
+  { id: '16', label: 'iPhone 16 Series', href: '/products?madanhmuc=1' },
+  { id: '15', label: 'iPhone 15 Series', href: '/products?madanhmuc=2' },
+  { id: '14', label: 'iPhone 14 Series', href: '/products?madanhmuc=3' },
+  { id: '13', label: 'iPhone 13 Series', href: '/products?madanhmuc=4' },
+];
+
 export default function StoreNavbar() {
-  const router = useRouter();
   const { lang, toggleLang, t } = useLanguage();
+  const router = useRouter();
 
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Theme state: 'light' | 'dark'
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  // States tìm kiếm gợi ý tức thì (Live Autocomplete Search)
+  // States tìm kiếm gợi ý tức thời
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState<ProductItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  const items = useCartStore((state) => state.items);
-  const [cartCount, setCartCount] = useState(0);
+  const cartCount = useCartStore((state) => state.getTotalItems());
 
   useEffect(() => {
-    const total = items.reduce((sum, i) => sum + i.soluong, 0);
-    setCartCount(total);
-  }, [items]);
+    setCustomer(authApi.getCurrentCustomer());
 
-  // Khởi tạo Theme từ LocalStorage và gán class vào <html>
-  useEffect(() => {
-    const curCustomer = authApi.getCurrentCustomer();
-    setCustomer(curCustomer);
-
-    // Lắng nghe sự kiện đăng nhập / đăng xuất
     const handleAuthChange = () => {
       setCustomer(authApi.getCurrentCustomer());
     };
     window.addEventListener('auth-change', handleAuthChange);
 
-    // Lắng nghe mở modal đăng nhập từ bên ngoài
     const handleOpenAuth = () => {
-      setIsAuthOpen(true);
+      setIsAuthModalOpen(true);
     };
     window.addEventListener('open-auth-modal', handleOpenAuth);
-
-    // Kiểm tra theme đã lưu
-    const savedTheme = localStorage.getItem('istore_theme') as 'light' | 'dark' | null;
-    if (savedTheme === 'dark') {
-      setTheme('dark');
-      document.documentElement.classList.add('dark');
-    } else {
-      setTheme('light');
-      document.documentElement.classList.remove('dark');
-    }
 
     return () => {
       window.removeEventListener('auth-change', handleAuthChange);
       window.removeEventListener('open-auth-modal', handleOpenAuth);
     };
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    localStorage.setItem('istore_theme', nextTheme);
-    if (nextTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   // Xử lý tìm kiếm gợi ý tức thời khi người dùng gõ phím
   useEffect(() => {
@@ -144,60 +116,66 @@ export default function StoreNavbar() {
     }
   };
 
-  const handleSelectProduct = (masanpham: number) => {
-    setShowSuggestions(false);
-    setSearchKeyword('');
-    router.push(`/products/${masanpham}`);
-  };
-
   const handleLogout = () => {
     authApi.logout();
     setCustomer(null);
-    setUserMenuOpen(false);
+    setIsDropdownOpen(false);
+    router.push('/');
   };
 
-  // Kiểm tra đăng nhập khi click vào nút Giỏ Hàng
   const handleCartClick = (e: React.MouseEvent) => {
     if (!customer) {
       e.preventDefault();
       openCustomerAuthModal(
         lang === 'VI'
-          ? 'Vui lòng đăng nhập tài khoản để xem và quản lý giỏ hàng của bạn!'
+          ? 'Vui lòng đăng nhập tài khoản Khách Hàng để xem và quản lý giỏ hàng!'
           : 'Please sign in to view and manage your shopping cart!',
       );
-      setIsAuthOpen(true);
     }
   };
 
-  const isStaffOrAdmin = customer && (customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN');
-  const isAdmin = customer && customer.role === 'ADMIN';
-
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur text-slate-900 dark:text-white shadow-sm transition-colors duration-200">
-        {/* Main Navbar */}
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 gap-3 sm:gap-4">
-          {/* Logo IStore */}
-          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 shrink-0 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-700/80 group-hover:border-sky-500 transition-all shadow-sm">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15.2 3.5C15.9 2.5 17 1.9 18.2 1.8C18.3 3.1 17.8 4.3 17 5.2C16.2 6.1 15 6.7 13.8 6.6C13.7 5.3 14.3 4.2 15.2 3.5Z" fill="#38BDF8"/>
-                <path d="M19.3 10.3C19.2 8.3 20.8 7.2 20.9 7.1C19.9 5.8 18.4 5.6 17.9 5.6C16.6 5.5 15.4 6.3 14.8 6.3C14.1 6.3 13.1 5.6 12 5.6C10.6 5.6 9.3 6.4 8.6 7.6C7.2 10 8.3 13.7 9.7 15.7C10.4 16.7 11.2 17.7 12.3 17.6C13.4 17.5 13.8 16.9 15 16.9C16.2 16.9 16.6 17.6 17.8 17.6C18.9 17.6 19.6 16.7 20.3 15.7C21.1 14.5 21.4 13.4 21.5 13.3C21.4 13.2 19.4 12.4 19.3 10.3Z" fill="#F8FAFC"/>
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-md text-white transition-colors">
+        {/* Thanh Thông Báo Apple Care & Hotline */}
+        <div className="bg-slate-900/90 text-slate-300 border-b border-slate-800/80 px-4 py-1.5 text-center text-[11px] font-semibold tracking-wide">
+          <div className="mx-auto max-w-7xl flex items-center justify-between">
+            <span className="hidden sm:inline">
+              {lang === 'VI'
+                ? 'Hệ thống phân phối iPhone chính hãng • Bảo hành Apple Care 12 Tháng'
+                : 'Authorized iPhone Reseller • 12-Month Official Apple Care Warranty'}
+            </span>
+            <span className="sm:hidden mx-auto font-bold text-sky-400">iStore Vietnam</span>
+            <div className="hidden sm:flex items-center gap-4 text-xs font-normal">
+              <span>Hotline: <strong className="text-white">1800 6868</strong></span>
+            </div>
+          </div>
+        </div>
+
+        {/* Header Chính */}
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          {/* Logo iStore */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 shrink-0 group focus:outline-none"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 text-white shadow-md border border-slate-700/80 group-hover:border-sky-500 transition-colors">
+              <svg className="h-5 w-5 fill-current" viewBox="0 0 170 170">
+                <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.08-7.7-7.86-12.03-14.34-6.1-9.14-10.88-19.78-14.34-31.93-3.46-12.14-5.19-23.75-5.19-34.82 0-14.59 3.52-26.68 10.57-36.26 7.05-9.58 16.03-14.47 26.96-14.67 4.58 0 9.8 1.14 15.66 3.42 5.86 2.28 9.77 3.48 11.73 3.59 1.52-.11 5.54-1.37 12.04-3.78 6.5-2.41 11.93-3.48 16.29-3.21 12.5.87 22.45 5.48 29.84 13.84-11.2 6.75-16.69 16.33-16.48 28.74.22 10.23 4.12 18.66 11.71 25.29 4.35 3.8 9.35 6.47 15.01 8-2.39 6.97-5.28 14.15-8.67 21.54zM119.22 33.15c0-7.39 2.66-14.24 7.98-20.55 5.32-6.31 11.79-10.35 19.41-12.12.87 6.96-.98 13.75-5.55 20.37-4.57 6.62-11.14 10.87-19.71 12.75-.43-.15-1.07-.23-1.92-.25-.14-.07-.21-.14-.21-.2z" />
               </svg>
             </div>
             <div>
-              <div className="font-black tracking-tight text-lg sm:text-xl flex items-center leading-none">
-                <span className="text-sky-500">i</span>
-                <span className="text-slate-900 dark:text-white">Store</span>
-              </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 tracking-wide mt-1 hidden sm:block">
-                {lang === 'VI' ? 'Hệ thống phân phối iPhone' : 'Authorized iPhone Reseller'}
-              </div>
+              <span className="text-lg font-black tracking-tight text-white block leading-none">
+                <span className="text-sky-400">i</span>Store
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium tracking-tight block">
+                Authorized iPhone Reseller
+              </span>
             </div>
           </Link>
 
-          {/* Ô TÌM KIẾM GỢI Ý TỨC THÌ (Instant Autocomplete Search Bar) */}
-          <div ref={searchContainerRef} className="flex-1 max-w-md relative hidden md:block">
+          {/* Ô Tìm Kiếm Autocomplete Tức Thời */}
+          <div ref={searchContainerRef} className="relative flex-1 max-w-xl mx-2 sm:mx-4">
             <form onSubmit={handleSearchSubmit} className="relative">
               <input
                 type="text"
@@ -208,38 +186,41 @@ export default function StoreNavbar() {
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 placeholder={t('search_placeholder')}
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/90 pl-10 pr-9 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-sky-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all"
+                className="w-full rounded-2xl border border-slate-700 bg-slate-900/90 text-white pl-10 pr-24 py-2.5 text-xs sm:text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 placeholder:text-slate-400 transition-all shadow-inner"
               />
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-              {searchKeyword && (
-                <button
-                  type="button"
-                  onClick={() => setSearchKeyword('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+
+              <button
+                type="submit"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-xl bg-sky-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-sky-500 transition-colors"
+              >
+                {lang === 'VI' ? 'Tìm' : 'Search'}
+              </button>
             </form>
 
-            {/* DROPDOWN GỢI Ý SẢN PHẨM REALTIME */}
+            {/* Menu Gợi Ý Live Search Autocomplete */}
             {showSuggestions && searchKeyword.trim().length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
-                  <span>{t('suggestions')} ({searchResults.length})</span>
-                  {isSearching && <span className="text-sky-500 animate-pulse">{t('searching')}</span>}
+              <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-slate-800 bg-slate-900/95 backdrop-blur-xl p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <span>{t('suggestions')}</span>
+                  {isSearching && <span className="text-sky-400">{t('searching')}</span>}
                 </div>
 
                 {searchResults.length > 0 ? (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-700/40 max-h-80 overflow-y-auto">
+                  <div className="space-y-1">
                     {searchResults.map((item) => (
                       <button
                         key={item.masanpham}
                         type="button"
-                        onClick={() => handleSelectProduct(item.masanpham)}
-                        className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 text-left transition-colors group"
+                        onClick={() => {
+                          setShowSuggestions(false);
+                          setSearchKeyword('');
+                          window.scrollTo({ top: 0, behavior: 'instant' });
+                          router.push(`/products/${item.masanpham}`);
+                        }}
+                        className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-800/80 text-left transition-colors group"
                       >
-                        <div className="h-10 w-10 shrink-0 rounded-lg bg-slate-50 dark:bg-slate-900/60 p-1 flex items-center justify-center overflow-hidden">
+                        <div className="h-10 w-10 shrink-0 rounded-lg bg-slate-950 p-1 flex items-center justify-center overflow-hidden border border-slate-800">
                           {item.hinhanh ? (
                             <img
                               src={item.hinhanh}
@@ -251,7 +232,7 @@ export default function StoreNavbar() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                          <div className="font-bold text-xs text-white group-hover:text-sky-400 transition-colors truncate">
                             {item.tensanpham}
                           </div>
                           <div className="text-[11px] text-slate-400 truncate">
@@ -259,10 +240,10 @@ export default function StoreNavbar() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="text-xs font-black text-rose-600 dark:text-rose-400">
+                          <div className="text-xs font-black text-rose-400">
                             {item.giaban.toLocaleString('vi-VN')} ₫
                           </div>
-                          <div className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                          <div className="text-[10px] text-emerald-400">
                             {item.soluongton > 0 ? `${t('only_left')} ${item.soluongton} ${t('units_left')}` : t('out_of_stock')}
                           </div>
                         </div>
@@ -273,7 +254,7 @@ export default function StoreNavbar() {
                       <button
                         type="button"
                         onClick={handleSearchSubmit}
-                        className="w-full rounded-lg bg-slate-100 dark:bg-slate-700/60 py-2 text-center text-xs font-bold text-sky-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        className="w-full rounded-lg bg-slate-800 py-2 text-center text-xs font-bold text-sky-400 hover:bg-slate-700 transition-colors"
                       >
                         {t('view_all_for')} &quot;{searchKeyword}&quot; ➔
                       </button>
@@ -288,45 +269,27 @@ export default function StoreNavbar() {
             )}
           </div>
 
-          {/* Action buttons (Sáng/Tối, Ngôn ngữ, Sản phẩm, Giỏ hàng, Tài khoản) */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Nút Toggle Theme Sáng / Tối */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-sky-500 transition-all"
-              title={theme === 'dark' ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-sky-600" />}
-            </button>
-
+          {/* Action buttons (Ngôn ngữ EN/VI, Giỏ hàng, Tài khoản - ĐÃ XÓA SÁNG/TỐI VÀ NÚT PRODUCTS) */}
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Nút Toggle Ngôn ngữ EN / VI */}
             <button
               type="button"
               onClick={toggleLang}
-              className="flex items-center gap-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-sky-500 transition-all"
-              title="Đổi ngôn ngữ (VI / EN)"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-bold text-slate-200 hover:border-sky-500 hover:text-white transition-all shadow-sm"
+              title="Switch Language (VI / EN)"
             >
-              <Globe className="h-3.5 w-3.5 text-sky-500" />
+              <Globe className="h-3.5 w-3.5 text-sky-400" />
               <span>{lang}</span>
             </button>
-
-            {/* Link danh mục sản phẩm */}
-            <Link
-              href="/products"
-              className="hidden lg:flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <span>{t('products')}</span>
-            </Link>
 
             {/* Giỏ hàng với badge (Chặn nếu chưa đăng nhập) */}
             <Link
               href="/cart"
               onClick={handleCartClick}
-              className="relative flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-800 dark:text-white hover:border-sky-500 transition-all shadow-sm"
+              className="relative flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:border-sky-500 transition-all shadow-sm"
               title={customer ? t('cart') : t('sign_in')}
             >
-              <ShoppingBag className="h-4 w-4 text-sky-500" />
+              <ShoppingBag className="h-4 w-4 text-sky-400" />
               <span className="hidden sm:inline">{t('cart')}</span>
               {customer && cartCount > 0 && (
                 <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-extrabold text-white">
@@ -335,76 +298,94 @@ export default function StoreNavbar() {
               )}
             </Link>
 
-            {/* User Account / Auth */}
+            {/* User Account / Auth Dropdown */}
             {customer ? (
               <div className="relative">
                 <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 hover:border-sky-500 transition-all"
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-bold text-slate-100 hover:border-sky-500 transition-all shadow-sm"
                 >
-                  <User className="h-4 w-4 text-sky-500" />
-                  <span className="max-w-[100px] truncate">{customer.hoten}</span>
-                  <ChevronDown className="h-3 w-3 text-slate-400" />
+                  <User className="h-4 w-4 text-sky-400" />
+                  <span className="hidden sm:inline max-w-[120px] truncate">{customer.hoten}</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
                 </button>
 
-                {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 shadow-2xl z-50 text-xs">
-                    <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700/60">
-                      <div className="font-bold text-slate-900 dark:text-white">{customer.hoten}</div>
-                      <div className="text-[11px] text-slate-400 truncate">{customer.email}</div>
-                      <div className="mt-1 inline-block rounded bg-sky-500/10 text-sky-600 dark:text-sky-300 px-2 py-0.5 text-[10px] font-bold">
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-50 text-xs">
+                    <div className="p-3 border-b border-slate-800">
+                      <div className="font-bold text-white truncate text-sm">{customer.hoten}</div>
+                      <div className="text-slate-400 text-[11px] truncate">{customer.email}</div>
+                      <div className="mt-1 inline-block rounded-md bg-sky-950 px-2 py-0.5 text-[10px] font-bold text-sky-400 border border-sky-800">
                         {customer.role === 'ADMIN'
-                          ? 'Quản Trị Viên (Admin)'
+                          ? 'Quản trị viên (Admin)'
                           : customer.role === 'NHAN_VIEN'
-                            ? 'Nhân Viên Bán Hàng (Staff)'
+                            ? 'Nhân viên bán hàng (Staff)'
                             : t('member_customer')}
                       </div>
                     </div>
 
-                    <Link
-                      href="/checkout"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      <span>{t('order_payment')}</span>
-                    </Link>
-
-                    {/* Phân quyền: Chỉ Staff / Admin mới thấy liên kết nội bộ */}
-                    {isStaffOrAdmin && (
+                    <div className="py-1">
                       <Link
-                        href="/staff/products"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-xl px-3 py-2 font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
+                        href="/cart"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-slate-300 hover:bg-slate-800 transition-colors"
                       >
-                        <ShieldAlert className="h-3.5 w-3.5 text-sky-500" />
-                        <span>{t('staff_portal')} (A4)</span>
+                        <ShoppingBag className="h-4 w-4 text-slate-400" />
+                        <span>{t('cart')} ({cartCount})</span>
                       </Link>
-                    )}
 
-                    {isAdmin && (
                       <Link
-                        href="/admin/users"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 rounded-xl px-3 py-2 font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
+                        href="/checkout"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-slate-300 hover:bg-slate-800 transition-colors"
                       >
-                        <span>{t('admin_portal')} (Server)</span>
+                        <ShieldCheck className="h-4 w-4 text-slate-400" />
+                        <span>{t('order_payment')}</span>
                       </Link>
-                    )}
 
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
-                    >
-                      <LogOut className="h-3.5 w-3.5" />
-                      <span>{t('sign_out')}</span>
-                    </button>
+                      {/* Phân quyền RBAC nội bộ */}
+                      {(customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN') && (
+                        <Link
+                          href="/staff/products"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-blue-400 font-bold hover:bg-blue-950/50 transition-colors"
+                        >
+                          <Lock className="h-4 w-4 text-blue-400" />
+                          <span>{t('staff_portal')}</span>
+                        </Link>
+                      )}
+
+                      {customer.role === 'ADMIN' && (
+                        <Link
+                          href="/admin/users"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-purple-400 font-bold hover:bg-purple-950/50 transition-colors"
+                        >
+                          <ShieldCheck className="h-4 w-4 text-purple-400" />
+                          <span>{t('admin_portal')}</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="pt-1 border-t border-slate-800">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-rose-400 hover:bg-rose-950/50 font-bold transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>{t('sign_out')}</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <button
-                onClick={() => setIsAuthOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/30 hover:bg-sky-500 transition-all shrink-0"
+                type="button"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-sky-500 transition-all"
               >
                 <LogIn className="h-3.5 w-3.5" />
                 <span>{t('sign_in')}</span>
@@ -413,52 +394,27 @@ export default function StoreNavbar() {
           </div>
         </div>
 
-        {/* Sub-navigation các dòng iPhone */}
-        <nav className="border-t border-slate-200 dark:border-slate-800/60 bg-slate-50/80 dark:bg-slate-900/60 overflow-x-auto scrollbar-none">
-          <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 sm:px-6 text-xs text-slate-600 dark:text-slate-300">
-            <Link
-              href="/products"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            >
-              {t('all_iphone')}
-            </Link>
-            <span className="text-slate-400 dark:text-slate-700">•</span>
-            <Link
-              href="/products?madanhmuc=1"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold text-sky-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            >
-              iPhone 16 Series
-            </Link>
-            <span className="text-slate-400 dark:text-slate-700">•</span>
-            <Link
-              href="/products?madanhmuc=2"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            >
-              iPhone 15 Series
-            </Link>
-            <span className="text-slate-400 dark:text-slate-700">•</span>
-            <Link
-              href="/products?madanhmuc=3"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            >
-              iPhone 14 Series
-            </Link>
-            <span className="text-slate-400 dark:text-slate-700">•</span>
-            <Link
-              href="/products?madanhmuc=4"
-              className="shrink-0 rounded-lg px-3 py-1 font-semibold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            >
-              iPhone 13 Series
-            </Link>
+        {/* Thanh Danh Mục Các Dòng iPhone Tabs */}
+        <div className="border-t border-slate-800 bg-slate-900/80 px-4 py-2">
+          <div className="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto text-xs font-semibold text-slate-300">
+            {IPHONE_SERIES_TABS.map((tab) => (
+              <Link
+                key={tab.id}
+                href={tab.href}
+                className="whitespace-nowrap hover:text-sky-400 transition-colors"
+              >
+                {tab.labelKey ? t(tab.labelKey as any) : tab.label}
+              </Link>
+            ))}
           </div>
-        </nav>
+        </div>
       </header>
 
       {/* Auth Modal */}
       <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onSuccess={(c) => setCustomer(c)}
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(loggedUser) => setCustomer(loggedUser)}
       />
     </>
   );

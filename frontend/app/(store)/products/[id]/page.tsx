@@ -13,7 +13,10 @@ import {
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import ProductCard from '../../../../components/store/ProductCard';
+import ProductCard, {
+  COLOR_TRANSLATIONS,
+  getLocalizedColor,
+} from '../../../../components/store/ProductCard';
 import StoreToast, { ToastMessage } from '../../../../components/store/StoreToast';
 import { useLanguage } from '../../../../contexts/LanguageContext';
 import { authApi, openCustomerAuthModal } from '../../../../services/auth.api';
@@ -35,10 +38,12 @@ const COLOR_MAP: Record<string, string> = {
   'Xanh Mòng Két': '#66827A',
   'Đen': '#1F2024',
   'Trắng': '#F2F2F2',
+  'Trắng Ánh Sao': '#F0EFE9',
+  'Đen Midnight': '#1F2024',
+  'Xanh Dương': '#37578D',
   'Tím': '#C7BCE1',
   'Vàng': '#F6E5A8',
   'Xanh Alpine': '#536557',
-  'Trắng Starlight': '#F0EFE9',
 };
 
 export default function ProductDetailPage() {
@@ -59,6 +64,11 @@ export default function ProductDetailPage() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToCart = useCartStore((state) => state.addToCart);
+
+  // TỰ ĐỘNG CUỘN LÊN ĐẦU TRANG MỖI KHI CLICK CHỌN SẢN PHẨM MỚI HOẶC KHÁC
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [productId]);
 
   const addToast = (message: string, isSuccess: boolean) => {
     const id = Date.now().toString();
@@ -136,6 +146,7 @@ export default function ProductDetailPage() {
         </p>
         <Link
           href="/products"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
           className="inline-block rounded-xl bg-slate-900 dark:bg-sky-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-sky-500"
         >
           ➔ {lang === 'VI' ? 'Quay lại Danh sách Sản phẩm' : 'Back to Product Catalog'}
@@ -214,7 +225,7 @@ export default function ProductDetailPage() {
     }
   };
 
-  // Chuẩn bị danh sách ảnh gallery đầy đủ (ít nhất 3 ảnh)
+  // Chuẩn bị danh sách ảnh gallery đầy đủ
   const galleryImages: string[] = [
     product.hinhanh || '',
     ...(product.hinhanhList || []),
@@ -240,6 +251,7 @@ export default function ProductDetailPage() {
   const availableStorages = Array.from(new Set(directSiblings.map((p) => p.dungluong)));
 
   const handleSelectStorage = (st: string) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     const matched = directSiblings.find((p) => p.dungluong === st && p.mausac === product.mausac);
     if (matched) {
       router.push(`/products/${matched.masanpham}`);
@@ -259,18 +271,26 @@ export default function ProductDetailPage() {
   };
 
   const handleSelectColor = (col: string) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     const matched = directSiblings.find((p) => p.mausac === col);
     if (matched) {
       router.push(`/products/${matched.masanpham}`);
     } else {
       addToast(
         lang === 'VI'
-          ? `Màu sắc ${col} tạm thời chưa sẵn sàng!`
-          : `Color ${col} is temporarily unavailable!`,
+          ? `Màu sắc ${getLocalizedColor(col, lang)} tạm thời chưa sẵn sàng!`
+          : `Color ${getLocalizedColor(col, lang)} is temporarily unavailable!`,
         false,
       );
     }
   };
+
+  const currentColorName = getLocalizedColor(product.mausac, lang);
+
+  // Dịch phần mô tả sản phẩm sang tiếng Anh mượt mà khi lang === 'EN'
+  const localizedDescription = lang === 'EN'
+    ? `[SKU: ${product.sku}] Official ${product.dungluong} edition in ${currentColorName} finish, equipped with Super Retina XDR OLED display, advanced Apple Bionic/A-series processor, pro-grade camera system, and outstanding all-day battery life.`
+    : product.mota;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-10">
@@ -292,7 +312,7 @@ export default function ProductDetailPage() {
         </Link>
         <span>/</span>
         <span className="font-bold text-slate-900 dark:text-slate-100 truncate max-w-xs">
-          {product.tensanpham} ({product.dungluong} - {product.mausac})
+          {product.tensanpham} ({product.dungluong} - {currentColorName})
         </span>
       </nav>
 
@@ -301,12 +321,12 @@ export default function ProductDetailPage() {
         {/* CỘT TRÁI: GALLERY HÌNH ẢNH TRONG SUỐT (lg:col-span-5) */}
         <div className="lg:col-span-5 space-y-4">
           {/* Ảnh Lớn Chính */}
-          <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-slate-50/80 dark:bg-slate-900 p-8 shadow-sm flex items-center justify-center border border-slate-200/80 dark:border-slate-800 transition-all">
+          <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-slate-50/80 dark:bg-slate-900/80 p-8 shadow-sm flex items-center justify-center border border-slate-200/80 dark:border-slate-800 transition-all">
             {selectedImage ? (
               <img
                 src={selectedImage}
                 alt={product.tensanpham}
-                className="max-h-full max-w-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_16px_32px_rgba(0,0,0,0.6)] transition-all duration-300"
+                className="max-h-full max-w-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_16px_32px_rgba(0,0,0,0.6)] transition-all duration-300"
               />
             ) : (
               <div className="text-xs text-slate-400">iPhone</div>
@@ -390,7 +410,7 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 text-xs font-bold text-sky-600 dark:text-sky-400 mb-1">
               <span>{product.DANH_MUC?.tendanhmuc}</span>
               <span>•</span>
-              <span>Mã SKU: {product.sku}</span>
+              <span>SKU: {product.sku}</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
@@ -412,7 +432,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Khung Giá Bán */}
+          {/* Khung Giá Bán (ĐÃ XÓA TRẢ GÓP 0%) */}
           <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-5 shadow-sm space-y-1">
             <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
               {lang === 'VI' ? 'Giá bán niêm yết (Đã gồm VAT)' : 'Official Retail Price (VAT Incl.)'}
@@ -422,11 +442,8 @@ export default function ProductDetailPage() {
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-1 flex-wrap">
               <span className="rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 font-bold text-[10px]">
-                {lang === 'VI' ? 'Miễn phí vận chuyển' : 'Free Shipping'}
+                {lang === 'VI' ? 'Miễn phí vận chuyển toàn quốc' : 'Free Nationwide Express Shipping'}
               </span>
-              <span>{lang === 'VI' ? 'Trả góp 0% qua thẻ tín dụng' : '0% Installment'}</span>
-              <span>•</span>
-              <span>{t('trade_in_badge')}</span>
             </div>
           </div>
 
@@ -465,13 +482,13 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* 2. ĐA DẠNG LỰA CHỌN MÀU SẮC */}
+          {/* 2. ĐA DẠNG LỰA CHỌN MÀU SẮC (DỊCH MÀU THEO NGÔN NGỮ CHỌN) */}
           <div>
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2.5 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Palette className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
                 <span>
-                  {t('select_color_title')}: <strong className="text-slate-900 dark:text-slate-100">{product.mausac}</strong>
+                  {t('select_color_title')}: <strong className="text-slate-900 dark:text-slate-100">{currentColorName}</strong>
                 </span>
               </div>
               <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500">
@@ -482,6 +499,7 @@ export default function ProductDetailPage() {
               {availableColors.map((col) => {
                 const isCurrent = col === product.mausac;
                 const hexColor = COLOR_MAP[col] || '#94A3B8';
+                const colLabel = getLocalizedColor(col, lang);
                 return (
                   <button
                     key={col}
@@ -497,7 +515,7 @@ export default function ProductDetailPage() {
                       className="h-3.5 w-3.5 rounded-full border border-black/20 shadow-inner shrink-0"
                       style={{ backgroundColor: hexColor }}
                     />
-                    <span>{col}</span>
+                    <span>{colLabel}</span>
                     {isCurrent && <Check className="h-3 w-3 text-sky-600 dark:text-sky-400 ml-0.5" />}
                   </button>
                 );
@@ -570,14 +588,14 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          {/* Mô tả chi tiết */}
-          {product.mota && (
+          {/* Mô tả chi tiết (Tự động dịch sang tiếng Anh khi chọn EN) */}
+          {localizedDescription && (
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
               <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
                 {lang === 'VI' ? 'Mô tả sản phẩm' : 'Product Description'}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
-                {product.mota}
+                {localizedDescription}
               </p>
             </div>
           )}
@@ -607,7 +625,7 @@ export default function ProductDetailPage() {
             </div>
             <div className="flex justify-between py-1.5">
               <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Màu sắc:' : 'Color:'}</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">{product.mausac}</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{currentColorName}</span>
             </div>
           </div>
 
@@ -615,7 +633,7 @@ export default function ProductDetailPage() {
             <div className="flex justify-between py-1.5">
               <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Tình trạng máy:' : 'Condition:'}</span>
               <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                {lang === 'VI' ? 'Mới 100% Nguyên Hộp (VN/A)' : 'Brand New 100% Sealed (VN/A)'}
+                {lang === 'VI' ? 'Mới 100% Nguyên Hộp (VN/A)' : 'Brand New 100% Sealed Box (VN/A)'}
               </span>
             </div>
             <div className="flex justify-between py-1.5">
@@ -629,7 +647,7 @@ export default function ProductDetailPage() {
             <div className="flex justify-between py-1.5">
               <span className="text-slate-500 dark:text-slate-400">{lang === 'VI' ? 'Trạng thái kinh doanh:' : 'Status:'}</span>
               <span className="font-bold text-sky-600 dark:text-sky-400">
-                {product.trangthai === 'DANG_BAN' ? (lang === 'VI' ? 'Đang kinh doanh' : 'Active') : product.trangthai}
+                {product.trangthai === 'DANG_BAN' ? (lang === 'VI' ? 'Đang kinh doanh' : 'Active & In Stock') : product.trangthai}
               </span>
             </div>
           </div>
@@ -645,6 +663,7 @@ export default function ProductDetailPage() {
             </h3>
             <Link
               href={`/products?madanhmuc=${product.madanhmuc}`}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
               className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-1"
             >
               <span>{lang === 'VI' ? `Xem tất cả (${siblingProducts.length})` : `View all (${siblingProducts.length})`}</span>

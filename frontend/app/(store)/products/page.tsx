@@ -96,6 +96,7 @@ function StoreProductsContent() {
     setMaxPrice('');
     setPriceQuickFilter('ALL');
     setSortBy('newest');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Tải danh mục một lần khi mount

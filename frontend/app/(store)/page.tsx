@@ -130,6 +130,7 @@ export default function StoreHomePage() {
           </div>
           <Link
             href="/products"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
             className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-1 transition-colors"
           >
             <span>{t('all_products_link')}</span>
@@ -147,6 +148,7 @@ export default function StoreHomePage() {
               <Link
                 key={item.madanhmuc}
                 href={`/products?madanhmuc=${item.madanhmuc}`}
+                onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
                 className="group relative flex flex-col justify-between rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-slate-400 dark:hover:border-slate-600 hover:shadow-xl transition-all duration-300"
               >
                 <div>
@@ -215,6 +217,7 @@ export default function StoreHomePage() {
           </div>
           <Link
             href="/products?madanhmuc=1"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
             className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-slate-900 dark:hover:border-slate-500 transition-colors flex items-center gap-1.5"
           >
             <span>{lang === 'VI' ? `Xem tất cả iPhone 16 (${iphone16Products.length})` : `All iPhone 16 (${iphone16Products.length})`}</span>
@@ -257,6 +260,7 @@ export default function StoreHomePage() {
           </div>
           <Link
             href="/products?madanhmuc=2"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
             className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-slate-900 dark:hover:border-slate-500 transition-colors flex items-center gap-1.5"
           >
             <span>{lang === 'VI' ? `Xem tất cả iPhone 15 (${iphone15Products.length})` : `All iPhone 15 (${iphone15Products.length})`}</span>

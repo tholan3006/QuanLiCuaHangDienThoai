@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   Package,
+  Trash2,
 } from 'lucide-react';
 import React from 'react';
 import { ProductItem } from '../../../services/products.api';
@@ -59,28 +60,40 @@ export default function ProductTable({
     );
   };
 
-  const renderStatusBadge = (trangthai: ProductItem['trangthai']) => {
-    switch (trangthai) {
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
       case 'DANG_BAN':
         return (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 border border-blue-200">
-            <CheckCircle2 className="h-3 w-3 text-blue-600" />
+          <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-0.5 text-[11px] font-bold text-sky-700 border border-sky-200">
+            <CheckCircle2 className="h-3 w-3 text-sky-600" />
             <span>Kinh doanh</span>
-          </span>
-        );
-      case 'HET_HANG':
-        return (
-          <span className="rounded-lg bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 border border-amber-200">
-            Tạm hết hàng
           </span>
         );
       case 'NGUNG_KINH_DOANH':
         return (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-700 border border-rose-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-600 border border-rose-200">
             <EyeOff className="h-3 w-3 text-rose-500" />
-            <span>Đã ẩn (Soft)</span>
+            <span>Ngừng bán</span>
           </span>
         );
+      case 'HET_HANG':
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 border border-amber-200">
+            <span>Tạm hết</span>
+          </span>
+        );
+      default:
+        return (
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700">
+            {status}
+          </span>
+        );
+    }
+  };
+
+  const handleDeleteClick = (p: ProductItem) => {
+    if (confirm(`Bạn có chắc muốn XÓA (ẩn khỏi kinh doanh) phiên bản sản phẩm #${p.masanpham} "${p.tensanpham} (${p.dungluong} - ${p.mausac})"?`)) {
+      onHide(p.masanpham);
     }
   };
 
@@ -102,16 +115,19 @@ export default function ProductTable({
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <thead className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold uppercase tracking-wider text-slate-500">
             <tr>
-              <th className="px-4 py-3.5">Mã / SKU</th>
-              <th className="px-4 py-3.5">Sản Phẩm iPhone</th>
-              <th className="px-4 py-3.5">Dòng Máy</th>
-              <th className="px-4 py-3.5">Dung Lượng / Màu</th>
+              <th className="px-3.5 py-3.5 w-16 text-center">ID</th>
+              <th className="px-4 py-3.5 min-w-[200px]">Sản Phẩm iPhone</th>
+              <th className="px-3 py-3.5">Dòng Máy</th>
+              <th className="px-3 py-3.5">Phiên Bản</th>
               <th className="px-4 py-3.5 text-right">Giá Bán</th>
-              <th className="px-4 py-3.5 text-center">Tồn Kho</th>
-              <th className="px-4 py-3.5 text-center">Trạng Thái</th>
-              <th className="px-4 py-3.5 text-center">Thao Tác Quản Lý</th>
+              <th className="px-3.5 py-3.5 text-center">Tồn Kho</th>
+              <th className="px-3.5 py-3.5 text-center">Trạng Thái</th>
+              {/* CỘT THAO TÁC CÓ MIN-WIDTH & STICKY ĐỂ LUÔN HIỂN THỊ ĐẦY ĐỦ NÚT XÓA */}
+              <th className="px-4 py-3.5 text-center min-w-[230px] sticky right-0 bg-slate-50/95 shadow-[-4px_0_8px_rgba(0,0,0,0.04)] z-10">
+                Thao Tác Quản Lý
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -120,26 +136,26 @@ export default function ProductTable({
               return (
                 <tr
                   key={p.masanpham}
-                  className={`transition-colors ${
+                  className={`group transition-colors ${
                     isHidden
                       ? 'bg-slate-50/60 text-slate-400'
                       : 'hover:bg-slate-50/80'
                   }`}
                 >
                   {/* Mã / SKU */}
-                  <td className="px-4 py-3 align-middle">
-                    <div className="font-mono text-xs font-bold text-slate-900">
+                  <td className="px-3.5 py-3 align-middle text-center">
+                    <span className="font-mono text-xs font-bold text-slate-900 block">
                       #{p.masanpham}
-                    </div>
-                    <div className="mt-0.5 inline-block rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 border border-slate-200">
+                    </span>
+                    <span className="rounded bg-slate-100 px-1 py-0.2 font-mono text-[9px] text-slate-500 border border-slate-200">
                       {p.sku}
-                    </div>
+                    </span>
                   </td>
 
                   {/* Ảnh & Tên Sản Phẩm */}
                   <td className="px-4 py-3 align-middle">
                     <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 p-1 flex items-center justify-center">
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 p-1 flex items-center justify-center">
                         {p.hinhanh ? (
                           <img
                             src={p.hinhanh}
@@ -152,7 +168,7 @@ export default function ProductTable({
                       </div>
                       <div className="min-w-0">
                         <div
-                          className={`font-bold text-sm truncate max-w-xs ${
+                          className={`font-bold text-xs truncate max-w-xs ${
                             isHidden
                               ? 'line-through text-slate-400'
                               : 'text-slate-900'
@@ -161,7 +177,7 @@ export default function ProductTable({
                           {p.tensanpham}
                         </div>
                         {p.mota && (
-                          <div className="text-[11px] text-slate-400 line-clamp-1 max-w-xs mt-0.5">
+                          <div className="text-[10px] text-slate-400 line-clamp-1 max-w-xs mt-0.5">
                             {p.mota.replace(/\[SKU:\s*[^\]]+\]\s*/i, '')}
                           </div>
                         )}
@@ -170,16 +186,16 @@ export default function ProductTable({
                   </td>
 
                   {/* Danh Mục */}
-                  <td className="px-4 py-3 align-middle whitespace-nowrap">
-                    <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                  <td className="px-3 py-3 align-middle whitespace-nowrap">
+                    <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
                       {p.DANH_MUC?.tendanhmuc || `Dòng #${p.madanhmuc}`}
                     </span>
                   </td>
 
                   {/* Phiên Bản */}
-                  <td className="px-4 py-3 align-middle whitespace-nowrap">
+                  <td className="px-3 py-3 align-middle whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <span className="rounded bg-slate-900 text-white px-2 py-0.5 text-[10px] font-bold">
+                      <span className="rounded bg-slate-900 text-white px-1.5 py-0.5 text-[10px] font-bold">
                         {p.dungluong}
                       </span>
                       <span className="text-xs font-semibold text-slate-700">
@@ -194,22 +210,22 @@ export default function ProductTable({
                   </td>
 
                   {/* Tồn Kho */}
-                  <td className="px-4 py-3 align-middle text-center whitespace-nowrap">
+                  <td className="px-3.5 py-3 align-middle text-center whitespace-nowrap">
                     {renderStockBadge(p)}
                   </td>
 
                   {/* Trạng Thái */}
-                  <td className="px-4 py-3 align-middle text-center whitespace-nowrap">
+                  <td className="px-3.5 py-3 align-middle text-center whitespace-nowrap">
                     {renderStatusBadge(p.trangthai)}
                   </td>
 
-                  {/* Thao Tác Quản Lý (Với Icon Chuyên Nghiệp) */}
-                  <td className="px-4 py-3 align-middle text-center whitespace-nowrap">
+                  {/* Thao Tác Quản Lý (Luôn hiển thị đầy đủ Kho & Giá, Sửa, Xóa) */}
+                  <td className="px-4 py-3 align-middle text-center whitespace-nowrap sticky right-0 bg-white group-hover:bg-slate-50 transition-colors shadow-[-4px_0_8px_rgba(0,0,0,0.04)] z-10">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => onQuickStockPrice(p)}
-                        title="Cập nhật nhanh Giá bán & Tồn kho (TON_KHO)"
+                        title="Cập nhật nhanh Giá bán & Tồn kho"
                         className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors"
                       >
                         <Boxes className="h-3 w-3 text-emerald-600" />
@@ -219,7 +235,7 @@ export default function ProductTable({
                       <button
                         type="button"
                         onClick={() => onEdit(p)}
-                        title="Chỉnh sửa toàn bộ thông tin sản phẩm"
+                        title="Chỉnh sửa thông tin sản phẩm"
                         className="inline-flex items-center gap-1 rounded-lg border border-sky-300 bg-sky-50 px-2 py-1 text-xs font-bold text-sky-800 hover:bg-sky-100 transition-colors"
                       >
                         <Edit3 className="h-3 w-3 text-sky-600" />
@@ -239,12 +255,12 @@ export default function ProductTable({
                       ) : (
                         <button
                           type="button"
-                          onClick={() => onHide(p.masanpham)}
-                          title="Soft Delete: Ẩn khỏi trang khách hàng, bảo toàn dữ liệu đơn hàng"
-                          className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 transition-colors"
+                          onClick={() => handleDeleteClick(p)}
+                          title="Xóa / Ngừng kinh doanh sản phẩm này"
+                          className="inline-flex items-center gap-1 rounded-lg border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
                         >
-                          <EyeOff className="h-3 w-3 text-rose-500" />
-                          <span>Ẩn</span>
+                          <Trash2 className="h-3 w-3" />
+                          <span>Xóa</span>
                         </button>
                       )}
                     </div>

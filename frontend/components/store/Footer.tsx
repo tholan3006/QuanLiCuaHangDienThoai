@@ -149,7 +149,7 @@ export default function StoreFooter() {
                   href="/staff/products"
                   className="font-bold text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  🔒 {lang === 'VI' ? 'Cổng Nhân Viên Bán Hàng (Staff)' : 'Staff Portal (A4)'}
+                  🔒 {lang === 'VI' ? 'Cổng Nhân Viên Bán Hàng (Staff)' : 'Staff Portal'}
                 </Link>
               </li>
               <li>
@@ -157,38 +157,46 @@ export default function StoreFooter() {
                   href="/admin/users"
                   className="font-bold text-purple-600 dark:text-purple-400 hover:underline"
                 >
-                  🛡️ {lang === 'VI' ? 'Cổng Quản Trị Server (Admin)' : 'Admin Server Portal (II.2)'}
+                  🛡️ {lang === 'VI' ? 'Cổng Quản Trị Server (Admin)' : 'Admin Server Portal'}
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Cột 4: Thông tin đồ án */}
+          {/* Cột 4: Chính sách & Chăm sóc khách hàng (XÓA BỎ MỤC III & TV3) */}
           <div>
             <h5 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-3">
-              {lang === 'VI' ? 'Đồ Án Môn Học' : 'Capstone Info'}
+              {lang === 'VI' ? 'Chính Sách & Hỗ Trợ' : 'Customer Support'}
             </h5>
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3.5 space-y-1.5 text-xs">
-              <div className="font-bold text-slate-900 dark:text-white">
-                Phân Tích Thiết Kế HTTT
-              </div>
-              <div className="text-slate-500 dark:text-slate-400">
-                Trường Đại học Sài Gòn (SGU)
-              </div>
-              <div className="text-slate-600 dark:text-slate-300 font-semibold">
-                Mục III: A. MUA HÀNG (70 điểm)
-              </div>
-              <div className="text-sky-600 dark:text-sky-400 font-bold pt-1">
-                TV3: Giao diện Khách hàng (Mục A3)
-              </div>
-            </div>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {lang === 'VI' ? '• Trung tâm Apple Care ủy quyền' : '• Apple Authorized Service'}
+                </span>
+              </li>
+              <li>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {lang === 'VI' ? '• Chính sách bảo mật thông tin' : '• Privacy & Security Policy'}
+                </span>
+              </li>
+              <li>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {lang === 'VI' ? '• Quy định kiểm hàng & đổi trả' : '• Return & Inspection Policy'}
+                </span>
+              </li>
+              <li>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {lang === 'VI' ? '• Giao nhận & kiểm tra tận nơi' : '• Nationwide Express Courier'}
+                </span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
 
       {/* Copyright */}
       <div className="border-t border-slate-200 dark:border-slate-800 py-4 text-center text-xs text-slate-500 dark:text-slate-400">
-        © 2026 iStore. Đồ án học phần Phân Tích Thiết Kế Hệ Thống Thông Tin - Khoa CNTT, Trường ĐH Sài Gòn.
+        © 2026 iStore. {lang === 'VI' ? 'Hệ thống phân phối iPhone chính hãng tại Việt Nam.' : 'Authorized iPhone Reseller in Vietnam.'}
       </div>
     </footer>
   );
