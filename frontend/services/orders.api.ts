@@ -1,5 +1,6 @@
 import { ApiError, apiRequest } from '../lib/api-client';
 import { authApi } from './auth.api';
+import { recordInvoiceFromCompletedOrder } from './invoices.api';
 import { ProductItem, productsApi } from './products.api';
 
 export interface OrderItemPayload {
@@ -183,7 +184,7 @@ const INITIAL_DEMO_ORDERS: OrderItem[] = [
   },
 ];
 
-function getLocalOrders(): OrderItem[] {
+export function getLocalOrders(): OrderItem[] {
   if (typeof window === 'undefined') return INITIAL_DEMO_ORDERS;
   const raw = localStorage.getItem(STORAGE_ORDERS_KEY);
   if (!raw) {
@@ -321,7 +322,13 @@ export const ordersApi = {
       return res.data || [];
     } catch {
       const all = getLocalOrders();
-      return all.filter((o) => o.makhachhang === customer.makhachhang);
+      const cId = customer.makhachhang ?? customer.mataikhoan;
+      return all.filter(
+        (o) =>
+          o.makhachhang === cId ||
+          (customer.sdt && o.KHACH_HANG?.sdt === customer.sdt) ||
+          (customer.hoten && o.KHACH_HANG?.hoten === customer.hoten),
+      );
     }
   },
 
@@ -393,6 +400,77 @@ export const ordersApi = {
       return {
         success: true,
         message: `Đã duyệt đơn hàng #${id} thành công! Số lượng tồn kho đã được tự động trừ theo quy định.`,
+      };
+    }
+  },
+
+  /**
+   * NHÂN VIÊN BÀN GIAO ĐƠN VỊ VẬN CHUYỂN (Chuyển sang DANG_GIAO)
+   */
+  async shipOrder(id: number, carrier = 'Giao Hàng Tiết Kiệm (GHTK)'): Promise<{ success: boolean; message: string }> {
+    try {
+      return await apiRequest(`/orders/${id}/ship`, {
+        method: 'PATCH',
+        body: JSON.stringify({ carrier }),
+      });
+    } catch {
+      const all = getLocalOrders();
+      const idx = all.findIndex((o) => o.madonhang === Number(id));
+      if (idx === -1) throw new Error(`Không tìm thấy đơn hàng #${id}`);
+
+      const order = all[idx];
+      if (order.trangthai !== 'DA_XAC_NHAN') {
+        throw new Error(`Đơn hàng #${id} đang ở trạng thái ${order.trangthai}, chỉ đơn đã duyệt mới có thể bàn giao vận chuyển.`);
+      }
+
+      order.trangthai = 'DANG_GIAO';
+      order.ghichu = order.ghichu ? `${order.ghichu} | ĐVVC: ${carrier}` : `ĐVVC: ${carrier}`;
+
+      saveLocalOrders(all);
+      return {
+        success: true,
+        message: `Đã in vận đơn và bàn giao đơn hàng #${id} cho ${carrier}. Đơn chuyển sang trạng thái Đang giao đến khách!`,
+      };
+    }
+  },
+
+  /**
+   * KHÁCH HÀNG BẤM "XÁC NHẬN ĐÃ NHẬN HÀNG" (Chuyển sang HOAN_THANH & Xuất hóa đơn ISSUED)
+   */
+  async confirmReceipt(id: number): Promise<{ success: boolean; message: string; invoice?: any }> {
+    try {
+      return await apiRequest(`/orders/${id}/complete`, { method: 'PATCH' });
+    } catch {
+      const all = getLocalOrders();
+      const idx = all.findIndex((o) => o.madonhang === Number(id));
+      if (idx === -1) throw new Error(`Không tìm thấy đơn hàng #${id}`);
+
+      const order = all[idx];
+      if (order.trangthai !== 'DANG_GIAO' && order.trangthai !== 'DA_XAC_NHAN') {
+        throw new Error(`Đơn hàng #${id} không ở trạng thái giao hàng.`);
+      }
+
+      order.trangthai = 'HOAN_THANH';
+      saveLocalOrders(all);
+
+      // Nghiệp vụ: Cập nhật số lượt bán của từng sản phẩm trong đơn khi hoàn thành
+      if (order.CHI_TIET_DON_HANG) {
+        for (const item of order.CHI_TIET_DON_HANG) {
+          try {
+            await productsApi.recordSale(item.masanpham, item.soluong || 1);
+          } catch (e) {
+            console.warn(`Lỗi cập nhật lượt bán SP #${item.masanpham}:`, e);
+          }
+        }
+      }
+
+      // Nghiệp vụ: Tự động xuất hóa đơn hợp lệ (ISSUED) lưu vào mục "Hóa đơn bán hàng"
+      const invoice = recordInvoiceFromCompletedOrder(order);
+
+      return {
+        success: true,
+        message: `Bạn đã xác nhận nhận hàng thành công cho đơn #${id}. Đơn hàng hoàn thành và hóa đơn VAT đã được phát hành!`,
+        invoice,
       };
     }
   },

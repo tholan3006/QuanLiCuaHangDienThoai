@@ -332,7 +332,7 @@ export default function StoreNavbar() {
                       </Link>
 
                       <Link
-                        href="/checkout"
+                        href="/my-orders"
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-slate-300 hover:bg-slate-800 transition-colors"
                       >

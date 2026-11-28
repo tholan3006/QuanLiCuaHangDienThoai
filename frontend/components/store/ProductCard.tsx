@@ -153,9 +153,12 @@ export default function ProductCard({ product, onAddedToCart }: ProductCardProps
             {product.tensanpham}
           </Link>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>
               {t('color_label')}: <strong className="text-slate-800 dark:text-slate-200">{colorName}</strong>
+            </span>
+            <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400">
+              {lang === 'VI' ? `Đã bán ${product.soluotban ?? 18}` : `${product.soluotban ?? 18} sold`}
             </span>
           </div>
         </div>

@@ -27,6 +27,7 @@ export default function StoreCartPage() {
   const [mounted, setMounted] = useState(false);
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -46,6 +47,15 @@ export default function StoreCartPage() {
     return () => window.removeEventListener('auth-change', handleAuthChange);
   }, []);
 
+  // Mặc định chọn tất cả sản phẩm khi vừa tải giỏ hàng
+  useEffect(() => {
+    if (items.length > 0 && selectedIds.length === 0) {
+      setSelectedIds(items.map((i) => i.masanpham));
+    } else {
+      setSelectedIds((prev) => prev.filter((id) => items.some((i) => i.masanpham === id)));
+    }
+  }, [items]);
+
   const addToast = (message: string, isSuccess: boolean) => {
     const id = Date.now().toString();
     setToasts((prev) => [
@@ -59,6 +69,50 @@ export default function StoreCartPage() {
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // Checkbox: Chọn tất cả hoặc bỏ chọn tất cả
+  const isAllSelected = items.length > 0 && selectedIds.length === items.length;
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(items.map((i) => i.masanpham));
+    }
+  };
+
+  // Checkbox: Chọn hoặc bỏ chọn 1 sản phẩm
+  const handleToggleItem = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  // Xóa hàng loạt các sản phẩm đã tick chọn
+  const handleBatchDeleteSelected = () => {
+    if (selectedIds.length === 0) {
+      addToast(
+        lang === 'VI' ? 'Vui lòng tick chọn ít nhất 1 sản phẩm để xóa!' : 'Please select at least 1 item to remove!',
+        false,
+      );
+      return;
+    }
+    if (
+      confirm(
+        lang === 'VI'
+          ? `Bạn có chắc muốn xóa ${selectedIds.length} sản phẩm đã chọn khỏi giỏ hàng?`
+          : `Remove ${selectedIds.length} selected items from cart?`,
+      )
+    ) {
+      selectedIds.forEach((id) => removeFromCart(id));
+      setSelectedIds([]);
+      addToast(
+        lang === 'VI'
+          ? `Đã xóa ${selectedIds.length} sản phẩm khỏi giỏ hàng.`
+          : `Removed ${selectedIds.length} items from cart.`,
+        true,
+      );
+    }
   };
 
   const handleUpdateQty = (
@@ -84,6 +138,7 @@ export default function StoreCartPage() {
   const handleRemoveItem = (masanpham: number, name: string) => {
     if (confirm(lang === 'VI' ? `Bạn có chắc muốn xóa "${name}" khỏi giỏ hàng?` : `Remove "${name}" from cart?`)) {
       removeFromCart(masanpham);
+      setSelectedIds((prev) => prev.filter((id) => id !== masanpham));
       addToast(lang === 'VI' ? `Đã xóa "${name}" khỏi giỏ hàng.` : `Removed "${name}" from cart.`, true);
     }
   };
@@ -91,16 +146,29 @@ export default function StoreCartPage() {
   const handleClearCart = () => {
     if (confirm(lang === 'VI' ? 'Bạn có chắc muốn xóa toàn bộ sản phẩm trong giỏ hàng?' : 'Clear all items in your cart?')) {
       clearCart();
+      setSelectedIds([]);
       addToast(lang === 'VI' ? 'Đã làm rỗng giỏ hàng.' : 'Cart emptied.', true);
     }
   };
 
   const handleProceedOrder = () => {
+    if (selectedIds.length === 0) {
+      addToast(
+        lang === 'VI'
+          ? 'Vui lòng tick chọn ít nhất 1 sản phẩm để thanh toán!'
+          : 'Please select at least 1 item to proceed to checkout!',
+        false,
+      );
+      return;
+    }
     if (!customer) {
       openCustomerAuthModal(lang === 'VI' ? 'Vui lòng đăng nhập để tiến hành đặt hàng!' : 'Please sign in to proceed with order!');
       return;
     }
-    router.push('/checkout');
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('selected_checkout_ids', JSON.stringify(selectedIds));
+    }
+    router.push(`/checkout?selected=${selectedIds.join(',')}`);
   };
 
   if (!mounted) {
@@ -111,39 +179,7 @@ export default function StoreCartPage() {
     );
   }
 
-  // NGHIỆP VỤ BẮT BUỘC: NẾU TÀI KHOẢN LÀ NHÂN VIÊN HOẶC ADMIN -> CHẶN STOREFRONT CART
-  if (customer && (customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN')) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-14 text-center space-y-6 shadow-sm">
-          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 mx-auto shadow-inner border border-indigo-100 dark:border-indigo-800">
-            <Lock className="h-9 w-9 text-indigo-600 dark:text-indigo-400" />
-          </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-              {lang === 'VI' ? 'Tài Khoản Quản Lý / Nhân Viên' : 'Staff / Admin Account'}
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-              {lang === 'VI'
-                ? `Bạn đang đăng nhập bằng tài khoản ${customer.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên'}. Storefront và giỏ hàng chỉ phục vụ Khách Hàng mua sắm. Nhân viên vui lòng sử dụng Cổng Quản Lý.`
-                : `You are signed in as ${customer.role === 'ADMIN' ? 'Admin' : 'Staff'}. Shopping cart is exclusively reserved for Customers.`}
-            </p>
-          </div>
-
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href={customer.role === 'ADMIN' ? '/admin' : '/staff/products'}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-500 transition-all"
-            >
-              <span>{lang === 'VI' ? 'Về Cổng Quản Lý' : 'Go to Management Portal'}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // NGHIỆP VỤ BẮT BUỘC: NẾU CHƯA ĐĂNG NHẬP -> HIỂN THỊ YÊU CẦU ĐĂNG NHẬP
   if (!customer) {
@@ -190,6 +226,9 @@ export default function StoreCartPage() {
 
   const totalAmount = getTotalAmount();
   const totalCount = getTotalItems();
+  const selectedItems = items.filter((i) => selectedIds.includes(i.masanpham));
+  const selectedAmount = selectedItems.reduce((sum, item) => sum + item.giaban * item.soluong, 0);
+  const selectedCount = selectedItems.reduce((sum, item) => sum + item.soluong, 0);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8">
@@ -246,16 +285,57 @@ export default function StoreCartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Cột Trái: Danh sách sản phẩm (lg:col-span-8) */}
           <div className="lg:col-span-8 space-y-4">
+            {/* Thanh điều khiển Tick Chọn Hàng Loạt & Xóa Hàng Loạt */}
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-sm text-xs transition-colors">
+              <label className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-200 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={handleToggleSelectAll}
+                  className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                />
+                <span>
+                  {lang === 'VI'
+                    ? `Chọn tất cả (${items.length} sản phẩm)`
+                    : `Select all (${items.length} items)`}
+                </span>
+              </label>
+
+              {selectedIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleBatchDeleteSelected}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/60 px-3.5 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors shadow-sm"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>
+                    {lang === 'VI'
+                      ? `Xóa các mục đã chọn (${selectedIds.length})`
+                      : `Remove selected (${selectedIds.length})`}
+                  </span>
+                </button>
+              )}
+            </div>
+
             <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
               {items.map((item) => {
                 const isMax = item.soluong >= item.soluongton;
+                const isChecked = selectedIds.includes(item.masanpham);
                 return (
                   <div
                     key={item.masanpham}
                     className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                   >
-                    {/* Ảnh & Thông tin */}
-                    <div className="flex items-center gap-4 flex-1">
+                    {/* Tick Checkbox & Ảnh & Thông tin */}
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleToggleItem(item.masanpham)}
+                        className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer shrink-0"
+                        title={lang === 'VI' ? 'Tick chọn để thanh toán' : 'Select for checkout'}
+                      />
+
                       <Link
                         href={`/products/${item.masanpham}`}
                         className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-800 p-2 flex items-center justify-center border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
@@ -381,13 +461,15 @@ export default function StoreCartPage() {
 
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>{t('total_items')}:</span>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{totalCount} {t('units_left')}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">
+                    {selectedCount} / {totalCount} {t('units_left')}
+                  </span>
                 </div>
 
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>{t('subtotal_goods')}:</span>
                   <span className="font-bold text-slate-900 dark:text-slate-100">
-                    {totalAmount.toLocaleString('vi-VN')} ₫
+                    {selectedAmount.toLocaleString('vi-VN')} ₫
                   </span>
                 </div>
 
@@ -408,7 +490,7 @@ export default function StoreCartPage() {
                   <span className="text-[11px] text-slate-400 dark:text-slate-500">{t('vat_included')}</span>
                 </div>
                 <div className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
-                  {totalAmount.toLocaleString('vi-VN')} ₫
+                  {selectedAmount.toLocaleString('vi-VN')} ₫
                 </div>
               </div>
 

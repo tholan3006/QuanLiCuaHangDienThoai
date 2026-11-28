@@ -178,8 +178,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <Layout>
         <Header
-          style={{ background: colorBgContainer }}
-          className="px-6 flex items-center justify-between border-b border-gray-200 h-16"
+          style={{ background: colorBgContainer, lineHeight: 'normal' }}
+          className="px-6 flex items-center justify-between border-b border-gray-200 h-16 leading-normal"
         >
           <Button
             type="text"

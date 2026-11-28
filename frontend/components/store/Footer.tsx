@@ -123,10 +123,10 @@ export default function StoreFooter() {
             </ul>
           </div>
 
-          {/* Cột 3: Trải nghiệm mua sắm & Cổng nội bộ */}
+          {/* Cột 3: Trải nghiệm mua sắm */}
           <div>
             <h5 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-3">
-              {lang === 'VI' ? 'Quy Trình & Cổng Nội Bộ' : 'Services & Portals'}
+              {lang === 'VI' ? 'Quy Trình & Dịch Vụ' : 'Services & Experience'}
             </h5>
             <ul className="space-y-2 text-xs">
               <li>
@@ -140,24 +140,8 @@ export default function StoreFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/checkout" className="hover:text-sky-500 transition-colors">
-                  {lang === 'VI' ? 'Đặt hàng & Thanh toán' : 'Order & Payment'}
-                </Link>
-              </li>
-              <li className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <Link
-                  href="/staff/products"
-                  className="font-bold text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  🔒 {lang === 'VI' ? 'Cổng Nhân Viên Bán Hàng (Staff)' : 'Staff Portal'}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/admin/users"
-                  className="font-bold text-purple-600 dark:text-purple-400 hover:underline"
-                >
-                  🛡️ {lang === 'VI' ? 'Cổng Quản Trị Server (Admin)' : 'Admin Server Portal'}
+                <Link href="/my-orders" className="hover:text-sky-500 transition-colors">
+                  {lang === 'VI' ? 'Đơn hàng & Thanh toán' : 'Order & Payment'}
                 </Link>
               </li>
             </ul>

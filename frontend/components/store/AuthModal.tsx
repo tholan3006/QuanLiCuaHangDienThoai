@@ -80,6 +80,18 @@ export default function AuthModal({
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+    // Ràng buộc số điện thoại: Phải đủ đúng 10 chữ số, không chứa chữ hay ký tự đặc biệt
+    const phoneClean = (regForm.sdt || '').trim();
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phoneClean)) {
+      setError(
+        lang === 'VI'
+          ? 'Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số (không được chứa chữ cái hoặc ký tự đặc biệt).'
+          : 'Invalid phone number! Must be exactly 10 numeric digits without letters or special characters.',
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const customer = await authApi.login(identifier, matkhau);
@@ -103,6 +115,18 @@ export default function AuthModal({
     }
     if (regForm.matkhau.length < 6) {
       setError(lang === 'VI' ? 'Mật khẩu phải từ 6 ký tự trở lên!' : 'Password must be at least 6 characters!');
+      return;
+    }
+
+    // Ràng buộc số điện thoại: Phải đủ đúng 10 chữ số, không chứa chữ hay ký tự đặc biệt
+    const phoneClean = (regForm.sdt || '').trim();
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phoneClean)) {
+      setError(
+        lang === 'VI'
+          ? 'Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số (không được chứa chữ cái hoặc ký tự đặc biệt).'
+          : 'Invalid phone number! Must be exactly 10 numeric digits without letters or special characters.',
+      );
       return;
     }
 
@@ -249,35 +273,6 @@ export default function AuthModal({
                 <span>{loading ? (lang === 'VI' ? 'Đang xác thực...' : 'Verifying...') : (lang === 'VI' ? 'Đăng Nhập' : 'Sign In')}</span>
               </button>
             </form>
-
-            {/* Khối Đăng Nhập Nhanh Tài Khoản Mẫu (Demo) */}
-            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <div className="text-center mb-2.5 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                <Zap className="h-3.5 w-3.5 text-amber-500" />
-                <span>{lang === 'VI' ? 'Tài khoản mẫu có sẵn (1 Click)' : 'Demo Accounts (1-Click)'}</span>
-              </div>
-
-              <div className="space-y-1.5">
-                {DEMO_CUSTOMERS.map((c, idx) => (
-                  <button
-                    key={c.mataikhoan}
-                    type="button"
-                    onClick={() => handleQuickLogin(idx)}
-                    className="w-full flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 px-3 py-2 text-left text-xs hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:border-sky-300 dark:hover:border-sky-700 transition-all group"
-                  >
-                    <div>
-                      <div className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-sky-700 dark:group-hover:text-sky-300">
-                        {c.hoten} <span className="text-slate-400 dark:text-slate-500 font-normal">({c.tendangnhap})</span>
-                      </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{c.email}</div>
-                    </div>
-                    <span className="text-[11px] font-bold text-sky-600 dark:text-sky-400 flex items-center gap-0.5">
-                      {lang === 'VI' ? 'Chọn' : 'Select'} <ArrowRight className="h-3 w-3" />
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
           </>
         ) : (
           /* TAB 2: FORM ĐĂNG KÝ BẰNG TAY */
