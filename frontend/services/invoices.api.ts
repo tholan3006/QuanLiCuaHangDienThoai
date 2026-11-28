@@ -220,6 +220,74 @@ export const DEFAULT_INVOICES: InvoiceItem[] = [
   },
 ];
 
+const STORAGE_INVOICES_KEY = 'iphone_demo_invoices_v3';
+
+export function getLocalInvoices(): InvoiceItem[] {
+  if (typeof window === 'undefined') return DEFAULT_INVOICES;
+  const raw = localStorage.getItem(STORAGE_INVOICES_KEY);
+  if (!raw) {
+    localStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(DEFAULT_INVOICES));
+    return DEFAULT_INVOICES;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return DEFAULT_INVOICES;
+  }
+}
+
+export function saveLocalInvoices(invoices: InvoiceItem[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(invoices));
+  }
+}
+
+export function recordInvoiceFromCompletedOrder(order: any, staffName = 'Trần Minh Tuấn'): InvoiceItem {
+  const all = getLocalInvoices();
+  const existing = all.find((i) => i.madonhang === order.madonhang);
+  if (existing) {
+    existing.trangthai = 'ISSUED';
+    saveLocalInvoices(all);
+    return existing;
+  }
+
+  const nextId = all.reduce((max, i) => Math.max(max, i.mahoadon), 0) + 1;
+  const newInvoice: InvoiceItem = {
+    mahoadon: nextId,
+    madonhang: order.madonhang,
+    ngaylap: new Date().toISOString(),
+    tongtien: order.tongtien,
+    hinhthuctt: order.phuongthucthanhtoan || 'COD',
+    trangthai: 'ISSUED',
+    manhanvien: 1,
+    NHAN_VIEN: {
+      manhanvien: 1,
+      hoten: staffName,
+      sdt: '0901000002',
+    },
+    DON_HANG: {
+      madonhang: order.madonhang,
+      makhachhang: order.makhachhang,
+      ngaydat: order.ngaydat,
+      tongtien: order.tongtien,
+      trangthai: 'HOAN_THANH',
+      phuongthucthanhtoan: order.phuongthucthanhtoan,
+      KHACH_HANG: order.KHACH_HANG,
+      CHI_TIET_DON_HANG: order.CHI_TIET_DON_HANG?.map((ct: any) => ({
+        machitiet: ct.machitiet || Date.now(),
+        masanpham: ct.masanpham,
+        soluong: ct.soluong,
+        dongia: ct.dongia,
+        thanhtien: ct.thanhtien,
+        SAN_PHAM: ct.SAN_PHAM,
+      })),
+    },
+  };
+
+  saveLocalInvoices([newInvoice, ...all]);
+  return newInvoice;
+}
+
 export async function fetchInvoices(params: InvoiceFilterParams = {}): Promise<InvoiceListResponse> {
   const query = new URLSearchParams();
   if (params.search) query.set('search', params.search);
@@ -237,8 +305,8 @@ export async function fetchInvoices(params: InvoiceFilterParams = {}): Promise<I
   } catch (error) {
     console.warn('[invoices.api] Sử dụng dữ liệu fallback offline:', error);
     
-    // Fallback filter
-    let list = [...DEFAULT_INVOICES];
+    // Fallback filter từ LocalStorage
+    let list = getLocalInvoices();
     if (params.trangthai && params.trangthai !== 'ALL') {
       list = list.filter((item) => item.trangthai === params.trangthai);
     }
@@ -283,14 +351,26 @@ export async function fetchInvoiceById(id: number): Promise<InvoiceItem> {
   try {
     return await apiRequest<InvoiceItem>(`/invoices/${id}`);
   } catch (error) {
-    const found = DEFAULT_INVOICES.find((i) => i.mahoadon === Number(id));
+    const all = getLocalInvoices();
+    const found = all.find((i) => i.mahoadon === Number(id));
     if (found) return found;
     throw error;
   }
 }
 
 export async function voidInvoice(madonhang: number): Promise<InvoiceItem> {
-  return await apiRequest<InvoiceItem>(`/invoices/${madonhang}/void`, {
-    method: 'PATCH',
-  });
+  try {
+    return await apiRequest<InvoiceItem>(`/invoices/${madonhang}/void`, {
+      method: 'PATCH',
+    });
+  } catch {
+    const all = getLocalInvoices();
+    const inv = all.find((i) => i.madonhang === Number(madonhang));
+    if (inv) {
+      inv.trangthai = 'VOID';
+      saveLocalInvoices(all);
+      return inv;
+    }
+    throw new Error(`Không tìm thấy hóa đơn cho đơn #${madonhang}`);
+  }
 }

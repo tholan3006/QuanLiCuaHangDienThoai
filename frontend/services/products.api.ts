@@ -23,6 +23,7 @@ export interface ProductItem {
   soluongton: number;
   ngaycapnhatkho?: string | null;
   sodonhangdaco?: number;
+  soluotban?: number;
   cothemua?: boolean;
   DANH_MUC?: {
     madanhmuc: number;
@@ -75,7 +76,7 @@ export interface UpdateStockPricePayload {
   hinhanh?: string;
 }
 
-const STORAGE_PRODUCTS_KEY = 'iphone_store_products_v4';
+const STORAGE_PRODUCTS_KEY = 'iphone_store_products_v6';
 
 const INITIAL_PRODUCTS: ProductItem[] = [
   // --- DÒNG IPHONE 16 PRO MAX ---
@@ -419,11 +420,10 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Xanh Dương',
     giaban: 22490000,
     mota: '[SKU: IP15-256-BLU] Phiên bản 256GB màu Xanh Dương trang nhã, cổng USB-C tiện lợi.',
-    hinhanh: '/images/products/iphone-15-pink.png',
+    hinhanh: '/images/products/iphone-15-blue.svg',
     hinhanhList: [
-      '/images/products/iphone-15-pink.png',
-      '/images/products/gallery/iphone-16-angle.png',
-      '/images/products/gallery/iphone-16-back.png',
+      '/images/products/iphone-15-blue.svg',
+      '/images/products/iphone-15-pro-max-blue.png',
     ],
     trangthai: 'DANG_BAN',
     madanhmuc: 2,
@@ -467,11 +467,10 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Trắng Ánh Sao',
     giaban: 18990000,
     mota: '[SKU: IP14-256-STA] Phiên bản 256GB màu Trắng Ánh Sao, màn hình OLED Super Retina XDR.',
-    hinhanh: '/images/products/iphone-14-purple.png',
+    hinhanh: '/images/products/iphone-14-starlight.svg',
     hinhanhList: [
-      '/images/products/iphone-14-purple.png',
-      '/images/products/gallery/iphone-16-angle.png',
-      '/images/products/gallery/iphone-16-back.png',
+      '/images/products/iphone-14-starlight.svg',
+      '/images/products/iphone-13-starlight.png',
     ],
     trangthai: 'DANG_BAN',
     madanhmuc: 3,
@@ -515,11 +514,10 @@ const INITIAL_PRODUCTS: ProductItem[] = [
     mausac: 'Đen Midnight',
     giaban: 15990000,
     mota: '[SKU: IP13-256-MID] Dung lượng 256GB thoải mái lưu trữ ảnh và video, chip A15 Bionic.',
-    hinhanh: '/images/products/iphone-13-starlight.png',
+    hinhanh: '/images/products/iphone-13-midnight.svg',
     hinhanhList: [
-      '/images/products/iphone-13-starlight.png',
-      '/images/products/gallery/iphone-16-angle.png',
-      '/images/products/gallery/iphone-16-back.png',
+      '/images/products/iphone-13-midnight.svg',
+      '/images/products/iphone-16-pro-max-black.png',
     ],
     trangthai: 'DANG_BAN',
     madanhmuc: 4,
@@ -557,15 +555,29 @@ function getLocalProducts(): ProductItem[] {
   if (typeof window === 'undefined') return INITIAL_PRODUCTS;
   const raw = localStorage.getItem(STORAGE_PRODUCTS_KEY);
   if (!raw) {
-    localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(INITIAL_PRODUCTS));
-    return INITIAL_PRODUCTS;
+    const seeded = INITIAL_PRODUCTS.map((p) => ({
+      ...p,
+      soluotban: p.soluotban ?? (15 + (p.masanpham % 10) * 3),
+    }));
+    localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(seeded));
+    return seeded;
   }
   try {
     const list: ProductItem[] = JSON.parse(raw);
-    // Luôn nâng cấp danh sách sản phẩm nếu danh sách cũ ít hơn hoặc còn dính ảnh cũ
-    if (list.length < INITIAL_PRODUCTS.length || list.some((p) => p.hinhanh?.includes('unsplash') || p.hinhanh?.endsWith('.jpg'))) {
-      localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(INITIAL_PRODUCTS));
-      return INITIAL_PRODUCTS;
+    let changed = false;
+    for (const p of list) {
+      if (p.soluotban === undefined) {
+        p.soluotban = 15 + (p.masanpham % 10) * 3;
+        changed = true;
+      }
+    }
+    if (changed || list.length < INITIAL_PRODUCTS.length || list.some((p) => p.hinhanh?.includes('unsplash') || p.hinhanh?.endsWith('.jpg'))) {
+      const merged = list.map((p) => ({
+        ...p,
+        soluotban: p.soluotban ?? (15 + (p.masanpham % 10) * 3),
+      }));
+      localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(merged));
+      return merged;
     }
     return list;
   } catch {
@@ -974,6 +986,26 @@ export const productsApi = {
             : `Đã ẩn sản phẩm "${cur.tensanpham} (${cur.dungluong} - ${cur.mausac})" khỏi trang khách hàng thành công.`,
         data: updated,
       };
+    }
+  },
+
+  /**
+   * Tăng số lượt bán của sản phẩm khi đơn hàng hoàn thành
+   */
+  async recordSale(masanpham: number, quantity = 1): Promise<void> {
+    const all = getLocalProducts();
+    const idx = all.findIndex((p) => p.masanpham === Number(masanpham));
+    if (idx !== -1) {
+      const cur = all[idx];
+      all[idx] = {
+        ...cur,
+        soluotban: (cur.soluotban || 0) + quantity,
+        sodonhangdaco: (cur.sodonhangdaco || 0) + 1,
+      };
+      saveLocalProducts(all);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('products-change'));
+      }
     }
   },
 

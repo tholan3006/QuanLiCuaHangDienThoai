@@ -103,7 +103,7 @@ export default function StockPriceModal({
             <input
               type="number"
               min={1}
-              step="1000"
+              step="any"
               value={giaban}
               onChange={(e) => setGiaban(e.target.value)}
               className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-bold text-emerald-700 focus:border-emerald-600 focus:outline-none"

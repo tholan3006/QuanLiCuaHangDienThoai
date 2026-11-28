@@ -1,4 +1,6 @@
 import { apiRequest } from '../lib/api-client';
+import { getLocalInvoices } from './invoices.api';
+import { getLocalOrders } from './orders.api';
 
 export interface ReportFilterParams {
   startDate?: string;
@@ -168,8 +170,57 @@ export async function fetchDashboardSummary(
   try {
     return await apiRequest(`/reports/summary?${query.toString()}`);
   } catch (error) {
-    console.warn('[reports.api] Fallback summary:', error);
-    return { success: true, data: FALLBACK_SUMMARY };
+    console.warn('[reports.api] Fallback summary tính toán trực tiếp từ CSDL:', error);
+    const invoices = getLocalInvoices();
+    const orders = getLocalOrders();
+
+    const issuedInvoices = invoices.filter((i) => i.trangthai === 'ISSUED');
+    const voidInvoices = invoices.filter((i) => i.trangthai === 'VOID');
+    const netRevenue = issuedInvoices.reduce((sum, i) => sum + Number(i.tongtien), 0);
+    const issuedInvoiceCount = issuedInvoices.length;
+    const voidInvoiceCount = voidInvoices.length;
+    const averageOrderValue = issuedInvoiceCount > 0 ? Math.round(netRevenue / issuedInvoiceCount) : 0;
+
+    const totalOrders = orders.length;
+    const completedOrders = orders.filter((o) => o.trangthai === 'HOAN_THANH').length;
+    const pendingOrders = orders.filter((o) => o.trangthai === 'CHO_XAC_NHAN').length;
+    const cancelledOrders = orders.filter((o) => o.trangthai === 'DA_HUY').length;
+    const cancellationRate = totalOrders > 0 ? Number(((cancelledOrders / totalOrders) * 100).toFixed(1)) : 0;
+
+    let totalSoldQuantity = 0;
+    orders.forEach((o) => {
+      if (o.trangthai === 'HOAN_THANH' || o.trangthai === 'DA_XAC_NHAN' || o.trangthai === 'DANG_GIAO') {
+        o.CHI_TIET_DON_HANG?.forEach((ct) => {
+          totalSoldQuantity += ct.soluong || 1;
+        });
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        dateRange: {
+          start: '2026-11-01T00:00:00.000Z',
+          end: '2026-11-30T23:59:59.999Z',
+        },
+        revenue: {
+          netRevenue,
+          averageOrderValue,
+          issuedInvoiceCount,
+          voidInvoiceCount,
+        },
+        orders: {
+          totalOrders,
+          completedOrders,
+          pendingOrders,
+          cancelledOrders,
+          cancellationRate,
+        },
+        products: {
+          totalSoldQuantity,
+        },
+      },
+    };
   }
 }
 

@@ -40,13 +40,28 @@ export default function StoreCheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<any | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  const items = useCartStore((state) => state.items);
+  const allCartItems = useCartStore((state) => state.items);
   const syncWithLatestProducts = useCartStore((state) => state.syncWithLatestProducts);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const clearCart = useCartStore((state) => state.clearCart);
-  const getTotalAmount = useCartStore((state) => state.getTotalAmount);
-  const getTotalItems = useCartStore((state) => state.getTotalItems);
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('selected_checkout_ids');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSelectedIds(parsed);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const items = selectedIds.length > 0
+    ? allCartItems.filter((i) => selectedIds.includes(i.masanpham))
+    : allCartItems;
 
   const addToast = (message: string, isSuccess: boolean) => {
     const id = Date.now().toString();
@@ -178,7 +193,11 @@ export default function StoreCheckoutPage() {
 
       // Đặt hàng thành công
       setOrderSuccess(res.data);
-      clearCart();
+      // Chỉ xóa các sản phẩm vừa đặt khỏi giỏ hàng
+      items.forEach((i) => removeFromCart(i.masanpham));
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('selected_checkout_ids');
+      }
     } catch (err: any) {
       addToast(err?.message || (lang === 'VI' ? 'Đặt hàng thất bại. Vui lòng kiểm tra lại tồn kho!' : 'Order failed. Please check stock!'), false);
     } finally {
@@ -277,8 +296,15 @@ export default function StoreCheckoutPage() {
           {/* Nút hành động */}
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
+              href="/my-orders"
+              className="rounded-xl bg-sky-600 px-6 py-3 text-xs font-bold text-white shadow hover:bg-sky-500 transition-colors flex items-center gap-1.5"
+            >
+              <span>{lang === 'VI' ? 'Xem Đơn Hàng Của Bạn' : 'View Your Orders'}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
               href="/"
-              className="rounded-xl bg-slate-900 dark:bg-sky-600 px-6 py-3 text-xs font-bold text-white shadow hover:bg-slate-800 dark:hover:bg-sky-500 transition-colors"
+              className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               {t('back_home_btn')}
             </Link>
@@ -288,41 +314,7 @@ export default function StoreCheckoutPage() {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // GIAO DIỆN KHI TÀI KHOẢN LÀ NHÂN VIÊN HOẶC ADMIN (CHẶN ĐẶT HÀNG TRÊN STOREFRONT)
-  // ---------------------------------------------------------------------------
-  if (customer && (customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN')) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 sm:p-14 text-center space-y-6 shadow-sm">
-          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 mx-auto shadow-inner border border-indigo-100 dark:border-indigo-800">
-            <ShieldCheck className="h-9 w-9 text-indigo-600 dark:text-indigo-400" />
-          </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-              {lang === 'VI' ? 'Tài Khoản Quản Lý / Nhân Viên' : 'Staff / Admin Account'}
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-              {lang === 'VI'
-                ? `Bạn đang đăng nhập bằng tài khoản ${customer.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên'}. Storefront và thanh toán chỉ áp dụng cho tài khoản Khách Hàng. Nhân viên vui lòng quản lý đơn hàng tại Cổng Quản Lý.`
-                : `You are signed in as ${customer.role === 'ADMIN' ? 'Admin' : 'Staff'}. Storefront checkout is exclusively for Customer accounts.`}
-            </p>
-          </div>
-
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href={customer.role === 'ADMIN' ? '/admin' : '/staff/orders'}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-500 transition-all"
-            >
-              <span>{lang === 'VI' ? 'Về Quản Lý Đơn Hàng' : 'Go to Orders Management'}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ---------------------------------------------------------------------------
   // GIAO DIỆN KHI GIỎ HÀNG RỖNG
@@ -348,8 +340,8 @@ export default function StoreCheckoutPage() {
     );
   }
 
-  const totalAmount = getTotalAmount();
-  const totalCount = getTotalItems();
+  const totalAmount = items.reduce((sum, item) => sum + item.giaban * item.soluong, 0);
+  const totalCount = items.reduce((sum, item) => sum + item.soluong, 0);
   const hasDiscontinued = items.some((i) => i.discontinued);
   const hasOutOfStock = items.some((i) => i.outOfStock || i.soluongton === 0);
 
@@ -450,13 +442,6 @@ export default function StoreCheckoutPage() {
                     </div>
                     <div className="text-slate-500 dark:text-slate-400">{customer.email} • SĐT: {customer.sdt || 'Chưa có'}</div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    {lang === 'VI' ? 'Đổi tài khoản' : 'Switch Account'}
-                  </button>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50/70 dark:bg-rose-950/40 p-4 text-xs space-y-3">

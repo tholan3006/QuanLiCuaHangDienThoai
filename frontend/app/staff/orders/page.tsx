@@ -71,6 +71,27 @@ export default function StaffOrdersPage() {
     }
   };
 
+  const handleShip = async (id: number) => {
+    if (!confirm(`Bạn có chắc muốn in phiếu và bàn giao đơn #${id} cho đơn vị vận chuyển? Đơn sẽ chuyển sang trạng thái Đang Giao.`)) {
+      return;
+    }
+    setActionLoading(id);
+    setAlertMsg(null);
+    try {
+      const res = await ordersApi.shipOrder(id);
+      setAlertMsg({ text: res.message });
+      await fetchOrders();
+      if (selectedOrder?.madonhang === id) {
+        const updated = await ordersApi.getById(id);
+        setSelectedOrder(updated);
+      }
+    } catch (err: any) {
+      setAlertMsg({ text: err?.message || 'Lỗi khi bàn giao vận chuyển', isError: true });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleCancel = async (id: number) => {
     const reason = prompt(`Nhập lý do hủy đơn hàng #${id}:`, 'Khách yêu cầu hủy hoặc sai thông tin');
     if (!reason) return;
@@ -239,6 +260,7 @@ export default function StaffOrdersPage() {
             { key: 'ALL', label: 'Tất cả' },
             { key: 'CHO_XAC_NHAN', label: 'Chờ duyệt' },
             { key: 'DA_XAC_NHAN', label: 'Đã duyệt' },
+            { key: 'DANG_GIAO', label: 'Đang giao' },
             { key: 'HOAN_THANH', label: 'Hoàn thành' },
             { key: 'DA_HUY', label: 'Đã hủy' },
           ].map((tab) => (
@@ -387,6 +409,20 @@ export default function StaffOrdersPage() {
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             <span>Duyệt Đơn</span>
+                          </button>
+                        )}
+
+                        {/* Nút Bàn Giao ĐVVC (Chỉ hiện khi Đã Duyệt) */}
+                        {isApproved && (
+                          <button
+                            type="button"
+                            onClick={() => handleShip(order.madonhang)}
+                            disabled={isOperating}
+                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                            title="In phiếu và bàn giao cho ĐVVC"
+                          >
+                            <Truck className="h-3.5 w-3.5" />
+                            <span>Bàn giao ĐVVC</span>
                           </button>
                         )}
 

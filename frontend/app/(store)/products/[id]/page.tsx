@@ -3,11 +3,11 @@
 import {
   ArrowRight,
   Check,
+  Flame,
   Palette,
   Settings,
   ShieldCheck,
   ShoppingBag,
-  Star,
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -130,6 +130,14 @@ export default function ProductDetailPage() {
     }
 
     fetchDetail();
+
+    const handleProductsChange = () => {
+      if (productId) {
+        productsApi.getById(productId).then((p) => setProduct(p)).catch(() => {});
+      }
+    };
+    window.addEventListener('products-change', handleProductsChange);
+    return () => window.removeEventListener('products-change', handleProductsChange);
   }, [productId, lang]);
 
   if (loading) {
@@ -448,11 +456,13 @@ export default function ProductDetailPage() {
             </h1>
 
             <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <div className="flex items-center text-amber-500 font-bold gap-1">
-                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                <span className="text-slate-800 dark:text-slate-200">5.0</span>
-                <span className="text-slate-400 dark:text-slate-500">
-                  {lang === 'VI' ? '(Đánh giá tốt)' : '(Highly rated)'}
+              <div className="flex items-center text-orange-600 dark:text-orange-400 font-bold gap-1.5">
+                <Flame className="h-4 w-4 text-orange-500 shrink-0" />
+                <span className="text-slate-900 dark:text-slate-100 font-extrabold">
+                  {lang === 'VI' ? 'Đã bán:' : 'Sold:'}
+                </span>
+                <span className="rounded-md bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 px-1.5 py-0.5 text-xs font-black border border-orange-200 dark:border-orange-800">
+                  {product.soluotban ?? 18} {lang === 'VI' ? 'máy' : 'units'}
                 </span>
               </div>
               <span>•</span>
@@ -553,39 +563,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* 3. BỘ CHỌN SỐ LƯỢNG & NÚT MUA HÀNG (CHỈ DÀNH CHO KHÁCH HÀNG / GUEST) */}
-          {customer && (customer.role === 'NHAN_VIEN' || customer.role === 'ADMIN') ? (
-            <div className="rounded-2xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/80 dark:bg-indigo-950/40 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-indigo-900 dark:text-indigo-200">
-                <ShieldCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                <span>{lang === 'VI' ? 'Tài Khoản Quản Lý / Nhân Viên' : 'Staff / Admin Management Account'}</span>
-              </div>
-              <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
-                {lang === 'VI'
-                  ? `Bạn đang đăng nhập với quyền ${customer.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên Bán Hàng'}. Storefront chỉ phục vụ khách hàng mua sắm. Nhân viên không thực hiện đặt hàng trên giao diện này.`
-                  : `You are signed in as ${customer.role === 'ADMIN' ? 'Admin' : 'Staff'}. Storefront purchasing is strictly for customers.`}
-              </p>
-              <div className="pt-1 flex flex-wrap gap-2.5">
-                <Link
-                  href={customer.role === 'ADMIN' ? '/admin' : '/staff/products'}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 text-xs font-bold shadow transition-all"
-                >
-                  <span>{lang === 'VI' ? 'Đến Cổng Quản Lý Sản Phẩm' : 'Go to Product Management'}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-                <Link
-                  href="/staff/orders"
-                  className="inline-flex items-center gap-2 rounded-xl border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-slate-800 text-indigo-800 dark:text-indigo-200 px-4 py-2.5 text-xs font-bold hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all"
-                >
-                  <span>{lang === 'VI' ? 'Xem Danh Sách Đơn Hàng' : 'View Orders List'}</span>
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* 3. BỘ CHỌN SỐ LƯỢNG (CHẶN VƯỢT TỒN KHO) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
+          {/* 3. BỘ CHỌN SỐ LƯỢNG (CHẶN VƯỢT TỒN KHO) */}
+          <div>
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2">
                   {t('purchase_quantity')} ({t('max_stock_label')} {product.soluongton} {t('units_left')})
                 </label>
                 <div className="flex items-center gap-3">
@@ -647,8 +627,6 @@ export default function ProductDetailPage() {
                   <span>{isOutOfStock ? t('out_of_stock') : t('buy_now_btn')}</span>
                 </button>
               </div>
-            </>
-          )}
 
           {/* Mô tả chi tiết (Tự động dịch sang tiếng Anh khi chọn EN) */}
           {localizedDescription && (
